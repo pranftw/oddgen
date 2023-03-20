@@ -1,6 +1,16 @@
 from PIL import Image
 from rembg import remove as rembg_remove
-from .utils import get_bbox
+from .utils import get_bbox, save_objects, get_annotations
+import json
+
+
+def extract_objects(annotations_fpath, save_to_fpath=None):
+  annotations_with_fpaths = get_annotations(annotations_fpath)
+  img_fpaths, annotations = list(annotations_with_fpath.keys()), list(annotations_with_fpath.values())
+  cropped_objects = crop(img_fpaths, annotations)
+  wo_bg_objects = remove_bg(cropped_objects)
+  if save_to_fpath is not None:
+    save_objects(wo_bg_objects, save_to_fpath)
 
 
 def crop(img_fpaths, annotations):
