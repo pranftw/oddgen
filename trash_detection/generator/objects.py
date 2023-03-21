@@ -35,8 +35,17 @@ def crop(annotations_dict):
   return cropped_objects
 
 
-def remove_bg(cropped_objects):
+def remove_bg(objects):
   wo_bg_objects = []
-  for cropped_img,category in cropped_objects:
-    wo_bg_objects.append((rembg_remove(cropped_img), category))
+  for obj,category in objects:
+    wo_bg_objects.append((rembg_remove(obj), category))
   return wo_bg_objects
+
+
+def resize(objects, size):
+  for obj in objects:
+    obj_width, obj_height = obj.size
+    if obj_width>=obj_height: # horizontal
+      obj.thumbnail(size)
+    else: # vertical
+      obj.thumbnail((size[1], size[0]))
