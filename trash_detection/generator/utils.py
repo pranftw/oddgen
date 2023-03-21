@@ -1,11 +1,12 @@
 import os
 import secrets
+import json
 
 
 def get_bbox(left, upper, width, height):
   right = left+width
   lower = upper+height
-  return left, upper, width, height
+  return left, upper, right, lower
 
 
 def save_objects(objects, fpath):
@@ -29,7 +30,7 @@ def get_annotations(annotations_fpath):
   img_annotations = {}
 
   for img in images:
-    img_fpath[img['file_name']] = img['id']
+    img_fpath[os.path.join(os.path.dirname(annotations_fpath), img['file_name'])] = img['id']
     img_annotations[img['id']] = []
   for annotation in annotations:
     bbox = annotation['bbox']
