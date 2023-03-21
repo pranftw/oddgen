@@ -12,7 +12,12 @@ def save_objects(objects, fpath):
   for object_img, category in objects:
     object_fname = f'{category}--{secrets.token_hex(8)}.png'
     object_img.save(os.path.join(fpath, object_fname))
-    object_img.close()
+
+
+def save_imgs(imgs, fpath):
+  for img in imgs:
+    img_fname = f'{secrets.token_hex(8)}.png'
+    img.save(os.path.join(fpath, img_fname))
 
 
 def get_annotations(annotations_fpath):

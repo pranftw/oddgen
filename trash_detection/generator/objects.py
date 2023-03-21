@@ -11,6 +11,14 @@ def extract_objects(annotations_fpath, save_to_fpath=None):
   wo_bg_objects = remove_bg(cropped_objects)
   if save_to_fpath is not None:
     save_objects(wo_bg_objects, save_to_fpath)
+  return wo_bg_objects
+
+
+def paste_objects(objects, new_img):
+  new_img_width, new_img_height = new_img.size
+  for obj in objects:
+    new_img.paste(obj, box=(random.randint(0, new_img_width), random.randint(0,new_img_height)))
+  return new_img
 
 
 def crop(img_fpaths, annotations):
