@@ -5,6 +5,13 @@ import json
 import random
 
 
+class Object:
+  def __init__(self, img, category):
+    self.img = img
+    self.category = category
+    self.bbox = None
+
+
 def extract_objects(annotations_fpath, save_to_fpath=None):
   annotations_dict = get_annotations(annotations_fpath)
   cropped_objects = crop(annotations_dict)
@@ -17,8 +24,9 @@ def extract_objects(annotations_fpath, save_to_fpath=None):
 def paste_objects(objects, new_img):
   new_img_width, new_img_height = new_img.size
   for obj in objects:
-    new_img.paste(obj, box=(random.randint(0, new_img_width), random.randint(0,new_img_height)))
-  return new_img
+    left, upper = random.randint(0, new_img_width), random.randint(0,new_img_height)
+    bbox = [left, upper, *obj.size] # should be combined with category to get annotation
+    new_img.paste(obj, box=(left, upper))
 
 
 def crop(annotations_dict):
@@ -31,9 +39,7 @@ def crop(annotations_dict):
       for annotation in annotations:
         left, upper, width, height, category = annotation
         bbox = get_bbox(left, upper, width, height)
-        cropped_object = orig_img.crop(bbox)
-        cropped_object.td_category = category # setting the category directly in PIL object. all attrs related to trash_detection are prefixed with td, so as to avoid conflicts
-        cropped_objects.append(cropped_object)
+        cropped_objects.append((orig_img.crop(bbox), category))
   return cropped_objects
 
 
