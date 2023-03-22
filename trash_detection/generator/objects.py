@@ -31,7 +31,9 @@ def crop(annotations_dict):
       for annotation in annotations:
         left, upper, width, height, category = annotation
         bbox = get_bbox(left, upper, width, height)
-        cropped_objects.append((orig_img.crop(bbox), category))
+        cropped_object = orig_img.crop(bbox)
+        cropped_object.td_category = category # setting the category directly in PIL object. all attrs related to trash_detection are prefixed with td, so as to avoid conflicts
+        cropped_objects.append(cropped_object)
   return cropped_objects
 
 
