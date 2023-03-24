@@ -5,7 +5,7 @@ import json
 import random
 
 
-class Object:
+class ObjectImage:
   def __init__(self, img, category):
     self.img = img
     self.category = category
@@ -22,11 +22,11 @@ def extract_objects(annotations_fpath, save_to_fpath=None):
 
 
 def paste_objects(objects, new_img):
-  new_img_width, new_img_height = new_img.size
+  new_img_width, new_img_height = new_img.img.size
   for obj in objects:
     left, upper = random.randint(0, new_img_width), random.randint(0,new_img_height)
-    bbox = [left, upper, *obj.size] # should be combined with category to get annotation
-    new_img.paste(obj, box=(left, upper))
+    bbox = [left, upper, *obj.img.size] # should be combined with category to get annotation
+    new_img.img.paste(obj.img, box=(left, upper))
 
 
 def crop(annotations_dict):
@@ -39,21 +39,21 @@ def crop(annotations_dict):
       for annotation in annotations:
         left, upper, width, height, category = annotation
         bbox = get_bbox(left, upper, width, height)
-        cropped_objects.append((orig_img.crop(bbox), category))
+        obj = ObjectImage(img=orig_img.crop(bbox), category=category)
+        cropped_objects.append(obj)
   return cropped_objects
 
 
 def remove_bg(objects):
-  wo_bg_objects = []
-  for obj,category in objects:
-    wo_bg_objects.append((rembg_remove(obj), category))
-  return wo_bg_objects
+  for obj in objects:
+    obj.img = rembg_remove(obj.img)
+  return objects
 
 
 def resize(objects, size):
   for obj in objects:
-    obj_width, obj_height = obj.size
+    obj_width, obj_height = obj.img.size
     if obj_width>=obj_height: # horizontal
-      obj.thumbnail(size)
+      obj.img.thumbnail(size)
     else: # vertical
-      obj.thumbnail((size[1], size[0]))
+      obj.img.thumbnail((size[1], size[0]))

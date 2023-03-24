@@ -10,15 +10,14 @@ def get_bbox(left, upper, width, height):
 
 
 def save_objects(objects, fpath):
-  for object_img, category in objects:
-    object_fname = f'{category}--{secrets.token_hex(8)}.png'
-    object_img.save(os.path.join(fpath, object_fname))
+  for obj in objects:
+    object_fname = f'{obj.category}--{secrets.token_hex(8)}.png'
+    obj.img.save(os.path.join(fpath, object_fname))
 
 
-def save_imgs(imgs, fpath):
-  for img in imgs:
-    img_fname = f'{secrets.token_hex(8)}.png'
-    img.save(os.path.join(fpath, img_fname))
+def save_generated_imgs(generated_imgs, fpath):
+  for generated_img in generated_imgs:
+    generated_img.img.save(os.path.join(fpath, generated_img.fname)) # images will be stored in png because then later on background will have to be added. During that time we can convert it to jpg
 
 
 def get_annotations(annotations_fpath):
