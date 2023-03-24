@@ -1,6 +1,6 @@
 from PIL import Image
 from .objects import extract_objects, paste_objects, resize
-from .utils import save_generated_imgs
+from .utils import save_generated_imgs, save_generated_annotations
 import random
 import os
 import secrets
@@ -9,8 +9,8 @@ import secrets
 class GeneratedImage:
   def __init__(self, img_size):
     self.img = Image.new(mode='RGBA', size=img_size)
-    self.objects = None
     self.fname = f'{secrets.token_hex(8)}.png'
+    self.objects = None
 
   def add_objects(self, objects):
     self.objects = objects
@@ -29,6 +29,7 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
     new_img.add_objects(selected_objects)
     paste_objects(selected_objects, new_img)
   save_generated_imgs(new_imgs, fpath)
+  save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
 
 
 def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath):

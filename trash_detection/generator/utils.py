@@ -20,6 +20,19 @@ def save_generated_imgs(generated_imgs, fpath):
     generated_img.img.save(os.path.join(fpath, generated_img.fname)) # images will be stored in png because then later on background will have to be added. During that time we can convert it to jpg
 
 
+def save_generated_annotations(generated_imgs, fpath):
+  annotations_dict = {'images':[], 'annotations':[]}
+  obj_id = 1 # object id always starts from 1 in COCO
+  for i,generated_img in enumerate(generated_imgs):
+    img_details = {'id':i, 'file_name':generated_img.fname}
+    for obj in generated_img.objects:
+      obj_details = {'id':obj_id, 'image_id':i, 'bbox':obj.bbox, 'category':obj.category}
+      annotations_dict['annotations'].append(obj_details)
+    annotations_dict['images'].append(img_details)
+  with open(fpath, 'w') as fp:
+    json.dump(annotations_dict, fp)
+
+
 def get_annotations(annotations_fpath):
   with open(annotations_fpath) as fp:
     annotations_dict = json.load(fp)
