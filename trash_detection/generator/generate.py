@@ -16,7 +16,7 @@ class GeneratedImage:
     self.objects = objects
 
 
-def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, object_transformations, fpath):
+def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, object_transformations, fpath, num_workers=4):
   if object_size[0]<object_size[1]:
     raise ValueError(f'First dim({object_size[0]}) should be greater than or equal to second dim({object_size[1]})')
   new_imgs = [GeneratedImage(img_size=img_size) for _ in range(num_imgs)]
@@ -32,7 +32,7 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
   save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
 
 
-def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath):
+def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath, num_workers=4):
   objects_fpath = os.path.join(fpath, 'objects')
   try:
     os.mkdir(objects_fpath)

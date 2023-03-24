@@ -1,6 +1,7 @@
 import os
 import secrets
 import json
+import math
 
 
 def get_bbox(left, upper, width, height):
@@ -30,7 +31,7 @@ def save_generated_annotations(generated_imgs, fpath):
       annotations_dict['annotations'].append(obj_details)
     annotations_dict['images'].append(img_details)
   with open(fpath, 'w') as fp:
-    json.dump(annotations_dict, fp)
+    json.dump(annotations_dict, fp, indent=2)
 
 
 def get_annotations(annotations_fpath):
@@ -53,3 +54,11 @@ def get_annotations(annotations_fpath):
   for img_fname, img_id in img_fpath.items():
     final_annotations[img_fname] = img_annotations[img_id]
   return final_annotations
+
+
+def batch_data(data, num_batches): # data should be a list
+  batches = [[] for _ in range(num_batches)]
+  for i,element in enumerate(data):
+    batch_idx = i%num_batches
+    batches[batch_idx].append(element)
+  return batches
