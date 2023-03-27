@@ -1,3 +1,4 @@
 Pillow
 matplotlib
 rembg[gpu] # remove [gpu] for running on cpu only
+pathos

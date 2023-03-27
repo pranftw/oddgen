@@ -54,11 +54,3 @@ def get_annotations(annotations_fpath):
   for img_fname, img_id in img_fpath.items():
     final_annotations[img_fname] = img_annotations[img_id]
   return final_annotations
-
-
-def batch_data(data, num_batches): # data should be a list
-  batches = [[] for _ in range(num_batches)]
-  for i,element in enumerate(data):
-    batch_idx = i%num_batches
-    batches[batch_idx].append(element)
-  return batches
