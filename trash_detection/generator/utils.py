@@ -31,7 +31,7 @@ def save_generated_annotations(generated_imgs, fpath):
       annotations_dict['annotations'].append(obj_details)
     annotations_dict['images'].append(img_details)
   with open(fpath, 'w') as fp:
-    json.dump(annotations_dict, fp, indent=2)
+    json.dump(annotations_dict, fp)
 
 
 def get_annotations(annotations_fpath):
