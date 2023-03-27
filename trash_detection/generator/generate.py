@@ -1,5 +1,6 @@
 from PIL import Image
 from pathos.multiprocessing import ProcessingPool as Pool
+from concurrent.futures import ThreadPoolExecutor
 from .objects import extract_objects, paste_objects, resize
 from .utils import save_generated_imgs, save_generated_annotations
 import random
@@ -34,6 +35,8 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
   
   with Pool(num_workers) as pool:
     new_imgs = pool.map(_generate, new_imgs)
+  # with ThreadPoolExecutor(max_workers=num_workers) as pool:
+  #   new_imgs = pool.map(_generate, new_imgs)
 
   # for new_img in new_imgs:
   #   _generate(new_img)
