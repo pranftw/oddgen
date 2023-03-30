@@ -1,12 +1,13 @@
+from PIL import Image
+from torchvision.transforms.functional import normalize
+from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
-from PIL import Image
 import torch.nn.functional as F
-from torchvision.transforms.functional import normalize
 
 
 # implementation references from https://github.com/xuebinqin/DIS/blob/main/IS-Net/Inference.py https://huggingface.co/spaces/doevent/dis-background-removal/blob/main/app.py
-# NOTE: batching needs to be implemented too
+
 
 class ObjectImage:
   def __init__(self, img, category):
@@ -15,18 +16,34 @@ class ObjectImage:
     self.bbox = None
 
 
-def remove_bg(objects, model_path='bg_remover_models/isnet_script_model.pt', weights_path='bg_remover_models/isnet-general-use.pth'):
+class BGRemoverDataset(Dataset):
+  def __init__(self, objects):
+    self.objects = objects
+  
+  def __len__(self):
+    return len(self.objects)
+  
+  def __getitem__(self, idx):
+    return self.objects[idx].img_tensor
+
+
+def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_model.pt', weights_path='bg_remover_models/isnet-general-use.pth'):
   device = 'cuda' if torch.cuda.is_available() else 'cpu'
   model = torch.jit.load(model_path).to(device)
   model.load_state_dict(torch.load(weights_path))
   model.eval()
 
   preprocess(objects)
-  imgs_cat = torch.cat([obj.img_tensor for obj in objects]).to(device)
+  dataset = BGRemoverDataset(objects)
+  dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
   
   with torch.no_grad():
-    outputs = model(imgs_cat)
-    for i, output in enumerate(outputs[0][0]):
+    outputs = []
+    for data_batch in dataloader:
+      output = model(data_batch.to(device))
+      outputs+=output[0][0]
+    
+    for i,output in enumerate(outputs):
       output = torch.unsqueeze(output, 0)
       mask = torch.squeeze(F.upsample(output, tuple(reversed(objects[i].img.size)), mode='bilinear'), 0) # since objects[i].img hasnt changed, the size will be the same as the original
       max_val = torch.max(mask)
@@ -53,11 +70,11 @@ def preprocess(objects):
     img_tensor = F.upsample(torch.unsqueeze(img_tensor,0), input_size, mode="bilinear").type(torch.uint8)
     img = torch.divide(img_tensor,255.0)
     img = normalize(img,[0.5,0.5,0.5],[1.0,1.0,1.0])
-    obj.img_tensor = img
+    obj.img_tensor = img.squeeze(0)
 
-objects = [ObjectImage(Image.open(fpath),1) for fpath in ['ignore/trashnet/train/700.jpg', 'ignore/trashnet/train/579.jpg']]
+objects = [ObjectImage(Image.open(fpath),1) for fpath in ['/home/pranav/Documents/py/trash_detection/ignore/trashnet/train/700.jpg', '/home/pranav/Documents/py/trash_detection/ignore/trashnet/train/579.jpg']]
 for obj in objects:
   obj.img.show()
-remove_bg(objects)
+remove_bg(objects, 1)
 for obj in objects:
   obj.img.show()
