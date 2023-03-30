@@ -1,11 +1,9 @@
 from PIL import Image
 from pathos.multiprocessing import ProcessingPool as Pool
 from concurrent.futures import ThreadPoolExecutor
-from rembg import remove as rembg_remove
 from .utils import get_bbox, save_objects, get_annotations
 import json
 import random
-import numpy as np
 
 
 class ObjectImage:
@@ -15,10 +13,10 @@ class ObjectImage:
     self.bbox = None
 
 
-def extract_objects(annotations_fpath, num_workers, save_to_fpath=None):
+def extract_objects(annotations_fpath, num_workers, bg_remover_batch_size, save_to_fpath=None):
   annotations_dict = get_annotations(annotations_fpath)
   cropped_objects = crop(annotations_dict, num_workers)
-  wo_bg_objects = remove_bg(cropped_objects, num_workers)
+  wo_bg_objects = remove_bg(cropped_objects, bg_remover_batch_size)
   if save_to_fpath is not None:
     save_objects(wo_bg_objects, save_to_fpath)
   return wo_bg_objects
@@ -58,13 +56,9 @@ def crop(annotations_dict, num_workers):
   return cropped_objects
 
 
-def remove_bg(objects, num_workers):
-  np.seterr(all="ignore")
-  object_imgs = [obj.img for obj in objects]
-  with Pool(num_workers) as pool:
-    results = pool.map(rembg_remove, object_imgs)
-  for obj, result in zip(objects, results):
-    obj.img = result
+def remove_bg(objects, batch_size):
+  from .bg_remover import remove_bg as bg_remover
+  bg_remover(objects, batch_size)
   return objects
 
 
