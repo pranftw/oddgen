@@ -5,4 +5,4 @@ ignore
 example.py
 DIS
 model_venv
-bg_remover_models
+*.pt*

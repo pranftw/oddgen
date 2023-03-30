@@ -15,7 +15,7 @@ class ObjectImage:
     self.bbox = None
 
 
-def remove_bg(objects, model_path='bg_remover_models/isnet_scripted_reduction_gpu.pt', weights_path='bg_remover_models/isnet-general-use.pth'):
+def remove_bg(objects, model_path='bg_remover_models/isnet_script_model.pt', weights_path='bg_remover_models/isnet-general-use.pth'):
   device = 'cuda' if torch.cuda.is_available() else 'cpu'
   model = torch.jit.load(model_path).to(device)
   model.load_state_dict(torch.load(weights_path))
