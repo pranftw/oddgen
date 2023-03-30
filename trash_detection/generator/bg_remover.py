@@ -12,14 +12,19 @@ import os
 
 
 class BGRemoverDataset(Dataset):
-  def __init__(self, objects):
+  def __init__(self, objects, upsample_size):
     self.objects = objects
+    self.upsample_size = upsample_size
   
   def __len__(self):
     return len(self.objects)
   
   def __getitem__(self, idx):
-    return self.objects[idx].img_tensor
+    img = torch.tensor(self.objects[idx].img_np, dtype=torch.float32).permute(2,0,1)
+    img = F.interpolate(torch.unsqueeze(img,0), self.upsample_size, mode="bilinear").type(torch.uint8)
+    img = torch.divide(img,255.0)
+    img = normalize(img,[0.5,0.5,0.5],[1.0,1.0,1.0])
+    return img.squeeze(0)
 
 
 def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_model.pt', weights_path='bg_remover_models/isnet-general-use.pth'):
@@ -30,7 +35,7 @@ def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_mo
   model.eval()
 
   preprocess(objects)
-  dataset = BGRemoverDataset(objects)
+  dataset = BGRemoverDataset(objects, (1024,1024))
   dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
   
   with torch.no_grad():
@@ -38,6 +43,8 @@ def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_mo
     for data_batch in dataloader:
       output = model(data_batch.to(device))
       outputs+=output[0][0]
+      if device=='cuda':
+        torch.cuda.empty_cache()
     
     for i,output in enumerate(outputs):
       output = torch.unsqueeze(output, 0)
@@ -55,7 +62,6 @@ def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_mo
 
 
 def preprocess(objects):
-  input_size = (1024, 1024) # default input size for isnet model
   for obj in objects:
     obj_img = obj.img.copy()
     if obj_img.mode=='RGBA' or obj_img.mode=='CMYK':
@@ -63,8 +69,4 @@ def preprocess(objects):
     img = np.asarray(obj_img)
     if len(img.shape) < 3:
       img = img[:, :, np.newaxis]
-    img_tensor = torch.tensor(img, dtype=torch.float32).permute(2,0,1)
-    img_tensor = F.interpolate(torch.unsqueeze(img_tensor,0), input_size, mode="bilinear").type(torch.uint8)
-    img = torch.divide(img_tensor,255.0)
-    img = normalize(img,[0.5,0.5,0.5],[1.0,1.0,1.0])
-    obj.img_tensor = img.squeeze(0)
+    obj.img_np = img
