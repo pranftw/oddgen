@@ -2,7 +2,7 @@ from PIL import Image
 from torchvision.transforms.functional import normalize
 from torch.utils.data import Dataset, DataLoader
 from torch.autograd import Variable
-from .objects import ObjectImage
+from .objects import ObjectImage, get_crop_box
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -96,5 +96,5 @@ def process_output(output, obj):
   pil_mask = Image.fromarray(mask).convert('L')
   orig_object = obj.img.copy()
   orig_object.putalpha(pil_mask)
-  bg_removed_object = orig_object
+  bg_removed_object = orig_object.crop(get_crop_box(obj.padding_amounts, orig_object.size))
   obj.img = bg_removed_object

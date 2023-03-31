@@ -39,10 +39,10 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
   save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
 
 
-def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath, bg_remover_batch_size=4, num_workers=4):
+def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath, crop_padding=0, bg_remover_batch_size=4, num_workers=4):
   objects_fpath = os.path.join(fpath, 'objects')
   try:
     os.mkdir(objects_fpath)
   except FileExistsError:
     pass
-  generate(num_imgs, img_size, extract_objects(annotations_fpath, num_workers=num_workers, bg_remover_batch_size=bg_remover_batch_size, save_to_fpath=objects_fpath), max_objects_in_each_img, object_size, object_transformations, fpath, num_workers)
+  generate(num_imgs, img_size, extract_objects(annotations_fpath, num_workers=num_workers, bg_remover_batch_size=bg_remover_batch_size, crop_padding=crop_padding, save_to_fpath=objects_fpath), max_objects_in_each_img, object_size, object_transformations, fpath, num_workers)
