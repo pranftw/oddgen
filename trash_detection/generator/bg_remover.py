@@ -2,20 +2,14 @@ from PIL import Image
 from torchvision.transforms.functional import normalize
 from torch.utils.data import Dataset, DataLoader
 from torch.autograd import Variable
-# from .objects import ObjectImage
+from .objects import ObjectImage
 import torch
 import numpy as np
 import torch.nn.functional as F
 import os
 
 
-# implementation references from https://github.com/xuebinqin/DIS/blob/main/IS-Net/Inference.py https://huggingface.co/spaces/doevent/dis-background-removal/blob/main/app.py
-
-class ObjectImage:
-  def __init__(self, img, category):
-    self.img = img
-    self.category = category
-    self.bbox = None
+# References: https://github.com/xuebinqin/DIS/blob/main/IS-Net/Inference.py https://huggingface.co/spaces/doevent/dis-background-removal/blob/main/app.py https://github.com/xuebinqin/U-2-Net/blob/master/u2net_portrait_demo.py
 
 
 class BGRemoverDataset(Dataset):
@@ -104,11 +98,3 @@ def process_output(output, obj):
   orig_object.putalpha(pil_mask)
   bg_removed_object = orig_object
   obj.img = bg_removed_object
-
-
-objects = [ObjectImage(Image.open(fpath),1) for fpath in ['ignore/trashnet/train/700.jpg', 'ignore/trashnet/train/579.jpg']]
-for obj in objects:
-  obj.img.show()
-remove_bg_u2(objects, 1)
-for obj in objects:
-  obj.img.show()

@@ -57,7 +57,7 @@ def crop(annotations_dict, num_workers):
 
 
 def remove_bg(objects, batch_size):
-  from .bg_remover import remove_bg as bg_remover
+  from .bg_remover import remove_bg_u2 as bg_remover
   bg_remover(objects, batch_size)
   return objects
 
