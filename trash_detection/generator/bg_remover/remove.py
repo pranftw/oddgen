@@ -2,7 +2,7 @@ from PIL import Image
 from torchvision.transforms.functional import normalize
 from torch.utils.data import Dataset, DataLoader
 from torch.autograd import Variable
-from .objects import ObjectImage, get_crop_box
+from ..objects import ObjectImage, get_crop_box
 import torch
 import numpy as np
 import torch.nn.functional as F

@@ -34,7 +34,7 @@ def save_generated_annotations(generated_imgs, fpath):
     json.dump(annotations_dict, fp)
 
 
-def get_annotations(annotations_fpath):
+def get_annotations(annotations_fpath, with_segmentation=False):
   with open(annotations_fpath) as fp:
     annotations_dict = json.load(fp)
   images = annotations_dict['images']
@@ -47,7 +47,13 @@ def get_annotations(annotations_fpath):
     img_annotations[img['id']] = []
   for annotation in annotations:
     bbox = annotation['bbox']
-    reqd_annotation = tuple(bbox + [annotation['category_id']]) # the annotation we require is left, upper, width, height, category
+    segmentation = annotation['segmentation']
+    reqd_annotation = bbox + [annotation['category_id']] # the annotation we require is left, upper, width, height, category
+    if with_segmentation:
+      reqd_annotation+=segmentation
+    else:
+      reqd_annotation+=[None]
+    reqd_annotation = tuple(reqd_annotation)
     img_annotations[annotation['image_id']].append(reqd_annotation)
   
   final_annotations = {}

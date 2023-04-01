@@ -12,6 +12,7 @@ class ObjectImage:
     self.category = category
     self.padding_amounts = padding_amounts
     self.bbox = None
+    self.mask = None
 
 
 def extract_objects(annotations_fpath, num_workers, bg_remover_batch_size, crop_padding=0, save_to_fpath=None):
@@ -43,10 +44,11 @@ def crop(annotations_dict, num_workers, padding):
     img_fpath, annotations = annotation_dict_item
     with Image.open(img_fpath) as orig_img:
       for annotation in annotations:
-        left, upper, width, height, category = annotation
+        left, upper, width, height, category, segmentation = annotation
         bbox = get_bbox(left, upper, width, height)
         padded_bbox = add_padding(padding, bbox, *orig_img.size)
         obj = ObjectImage(img=orig_img.crop(padded_bbox), category=category, padding_amounts=get_padding_amounts(padded_bbox, bbox))
+        obj.mask = segmentation2mask(segmentation) # NOTE: segmentation2mask has to be implemented
         objects.append(obj)
     return objects
 
