@@ -58,7 +58,7 @@ def remove_bg_u2(objects, batch_size, model_path='bg_remover_models/u2netp_scrip
     outputs = []
     for data_batch in dataloader:
       output = model(data_batch.to(device))
-      outputs+=output[0]
+      outputs+=(1-output[0])
       del output
   
     for obj, output in zip(objects, outputs):
