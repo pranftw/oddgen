@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+from PIL import Image
 import os
 import secrets
 import json
@@ -59,3 +61,14 @@ def get_annotations(annotations_fpath, with_segmentation=False):
   for img_fname, img_id in img_fpath.items():
     final_annotations[img_fname] = img_annotations[img_id]
   return final_annotations
+
+
+def get_imgs_from_dir(dir_path, ext=None, num_workers=4):
+  fpaths = os.listdir(dir_path)
+  def _get_img(fpath):
+    if (ext is not None) and (fpath.endswith(ext)):
+      return Image.open(os.path.join(dir_path, fpath))
+  with ThreadPoolExecutor(max_workers=num_workers) as pool:
+    imgs = pool.map(_get_img, fpaths)
+  imgs = list(filter(lambda img:img is not None, imgs))
+  return imgs
