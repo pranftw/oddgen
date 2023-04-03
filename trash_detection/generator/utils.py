@@ -47,10 +47,9 @@ def get_annotations(annotations_fpath, with_segmentation=False):
     img_annotations[img['id']] = []
   for annotation in annotations:
     bbox = annotation['bbox']
-    segmentation = annotation['segmentation']
     reqd_annotation = bbox + [annotation['category_id']] # the annotation we require is left, upper, width, height, category
     if with_segmentation:
-      reqd_annotation+=segmentation
+      reqd_annotation+=annotation['segmentation']
     else:
       reqd_annotation+=[None]
     reqd_annotation = tuple(reqd_annotation)

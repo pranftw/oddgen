@@ -48,7 +48,8 @@ def crop(annotations_dict, num_workers, padding):
         bbox = get_bbox(left, upper, width, height)
         padded_bbox = add_padding(padding, bbox, *orig_img.size)
         obj = ObjectImage(img=orig_img.crop(padded_bbox), category=category, padding_amounts=get_padding_amounts(padded_bbox, bbox))
-        obj.mask = segmentation2mask(segmentation) # NOTE: segmentation2mask has to be implemented
+        if segmentation is not None:
+          obj.mask = segmentation2mask(segmentation) # NOTE: segmentation2mask has to be implemented
         objects.append(obj)
     return objects
 
@@ -62,7 +63,7 @@ def crop(annotations_dict, num_workers, padding):
 
 
 def remove_bg(objects, batch_size):
-  from .bg_remover import remove_bg as bg_remover
+  from .bg_remover import remove_bg_u2 as bg_remover
   bg_remover(objects, batch_size)
   return objects
 

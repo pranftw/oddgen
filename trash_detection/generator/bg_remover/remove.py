@@ -30,7 +30,7 @@ class BGRemoverDataset(Dataset):
     return img.squeeze(0)
 
 
-def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_model.pt', weights_path='bg_remover_models/isnet-general-use.pth'):
+def remove_bg(objects, batch_size, model_path='models/isnet_script_model.pt', weights_path='models/isnet-general-use.pth'):
   model, device = load_model(model_path, weights_path)
   preprocess(objects)
   dataset = BGRemoverDataset(objects, (1024,1024), [0.5,0.5,0.5], [1.0,1.0,1.0])
@@ -48,7 +48,7 @@ def remove_bg(objects, batch_size, model_path='bg_remover_models/isnet_script_mo
   return objects
 
 
-def remove_bg_u2(objects, batch_size, model_path='bg_remover_models/u2netp_script_model.pt', weights_path='bg_remover_models/u2netp.pth'):
+def remove_bg_u2(objects, batch_size, model_path='models/u2net_script_model.pt', weights_path='models/u2net.pth'):
   model, device = load_model(model_path, weights_path, strict_weights_loading=False)
   preprocess(objects)
   dataset = BGRemoverDataset(objects, (512,512), [0.406,0.485,0.456], [0.225,0.229,0.224])
@@ -58,7 +58,7 @@ def remove_bg_u2(objects, batch_size, model_path='bg_remover_models/u2netp_scrip
     outputs = []
     for data_batch in dataloader:
       output = model(data_batch.to(device))
-      outputs+=(1-output[0])
+      outputs+=output[0]
       del output
   
     for obj, output in zip(objects, outputs):
