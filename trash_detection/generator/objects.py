@@ -27,7 +27,8 @@ def extract_objects(annotations_fpath, num_workers, bg_remover_batch_size, crop_
 def paste_objects(objects, new_img):
   new_img_width, new_img_height = new_img.img.size
   for obj in objects:
-    left, upper = random.randint(0, new_img_width), random.randint(0,new_img_height)
+    obj_width, obj_height = obj.img.size
+    left, upper = random.randint(0, new_img_width-obj_width), random.randint(0, new_img_height-obj_height) # obj_width and obj_height are subtracted so as to ensure there there is no overflow of the images
     bbox = [left, upper, *obj.img.size] # should be combined with category to get annotation
     obj.bbox = bbox
     new_img.img.paste(obj.img, (left, upper), obj.img)
