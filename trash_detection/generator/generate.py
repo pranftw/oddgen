@@ -35,20 +35,12 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
   with Pool(num_workers) as pool:
     new_imgs = pool.map(_generate, new_imgs)
 
-  try:
-    os.mkdir(fpath)
-  except FileExistsError:
-    pass
   save_generated_imgs(new_imgs, fpath)
   save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
   return new_imgs
 
 
 def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath, crop_padding=0, bg_remover_batch_size=4, num_workers=4):
-  try:
-    os.mkdir(fpath)
-  except FileExistsError:
-    pass
   objects_fpath = os.path.join(fpath, 'objects')
   try:
     os.mkdir(objects_fpath)
