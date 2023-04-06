@@ -3,6 +3,7 @@ from torchvision.transforms.functional import normalize
 from torch.utils.data import Dataset, DataLoader
 from torch.autograd import Variable
 from ..objects import ObjectImage, get_crop_box
+from .utils import load_model
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -64,16 +65,6 @@ def remove_bg_u2(objects, batch_size, model_path='models/u2net_script_model.pt',
     for obj, output in zip(objects, outputs):
       process_output(output, obj)
   return objects
-
-
-def load_model(model_path, weights_path, strict_weights_loading=True):
-  parent_dir = os.path.dirname(__file__)
-  device = 'cuda' if torch.cuda.is_available() else 'cpu'
-  model = torch.jit.load(os.path.join(parent_dir, model_path)).to(device)
-  if weights_path is not None:
-    model.load_state_dict(torch.load(os.path.join(parent_dir, weights_path)), strict=strict_weights_loading)
-  model.eval()
-  return model, device
 
 
 def preprocess(objects):

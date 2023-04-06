@@ -8,20 +8,20 @@
 '''
 
 
-import os
-from remove import load_model
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 from torch import nn
 from torch.autograd import Variable
+from torchvision import transforms, utils
+from skimage import io, transform, color
+from utils import load_model
+import os
 import torch.nn.functional as F
 import torch
 import torchvision
 import numpy as np
-from skimage import io, transform, color
 import random
 import math
-from torchvision import transforms, utils
 
 
 # <-----------------------------DATALOADER------------------------->
