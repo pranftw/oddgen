@@ -1,5 +1,4 @@
 Pillow
-matplotlib
 torch
 torchvision
 pathos
