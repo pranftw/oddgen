@@ -100,7 +100,7 @@ class SalObjDataset(Dataset):
 		if num_data is not None:
 			assert num_data<=num_img_paths, f'number of data points required {num_data} should be lesser than or equal to total number of data {num_img_paths}'
 		self.num_data = num_data if num_data is not None else num_img_paths
-		self.img_paths, self.lbl_paths = zip(*(random.sample(zip(img_paths, lbl_paths), self.num_data)))
+		self.img_paths, self.lbl_paths = zip(*(random.sample(list(zip(img_paths, lbl_paths)), self.num_data)))
 		self.transform = transform
 
 	def __len__(self):
@@ -129,7 +129,7 @@ NUM_DATA = 100 # if None, use all the data in the dataset
 try:
 	os.mkdir(SAVE_MODEL_WEIGHTS_IN)
 except FileExistsError:
-	print(f'Directory SAVE_MODEL_WEIGHTS_IN is not empty!')
+	raise ValueError(f'Directory SAVE_MODEL_WEIGHTS_IN is not empty!')
 
 bce_loss = nn.BCELoss(reduction='mean')
 def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
@@ -149,7 +149,6 @@ with open('trash_detection/ignore/crop_masks/images.txt') as fp:
 	img_paths = fp.read().split('\n')
 with open('trash_detection/ignore/crop_masks/labels.txt') as fp:
 	lbl_paths = fp.read().split('\n')
-train_num = len(img_paths)
 salobj_dataset = SalObjDataset(
 		img_paths=img_paths,
 		lbl_paths=lbl_paths,
@@ -160,6 +159,7 @@ salobj_dataset = SalObjDataset(
 			ToTensorLab()
 		]))
 salobj_dataloader = DataLoader(salobj_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
+train_num = NUM_DATA
 
 model, device = load_model(MODEL_PATH, None, strict_weights_loading=False)
 optim = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
@@ -188,7 +188,7 @@ for epoch in range(0, EPOCHS):
 		del d0, d1, d2, d3, d4, d5, d6, loss2, loss
 
 		print("[epoch: %3d/%3d, batch: %5d/%5d, ite: %d] train loss: %3f, tar: %3f " % (
-		epoch + 1, EPOCHS, (i + 1) * BATCH_SIZE, train_num, ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))
+		epoch + 1, EPOCHS, i*BATCH_SIZE, train_num, ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))
 
 		if ite_num%MODEL_SAVE_FREQ==0:
 			torch.save(model.state_dict(), SAVE_MODEL_WEIGHTS_IN+"/bce_itr_%d_train_%3f_tar_%3f.pth" % (ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))
