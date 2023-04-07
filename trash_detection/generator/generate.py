@@ -8,10 +8,11 @@ import secrets
 
 
 class GeneratedImage:
-  def __init__(self, img_size):
-    self.img = Image.new(mode='RGBA', size=img_size)
+  def __init__(self, img_size=None):
+    self.img = Image.new(mode='RGBA', size=img_size) if img_size is not None else None
     self.fname = f'{secrets.token_hex(8)}.png'
     self.objects = None
+    self.annotations = None
 
   def add_objects(self, objects):
     self.objects = objects
@@ -64,18 +65,19 @@ def add_texture(generated_imgs, textures_fpath, max_textures_per_img, img_size, 
   textures = get_textures(textures_fpath, img_size)
 
   def _add(generated_img):
-    all_imgs = []
+    textured_generated_imgs = []
     selected_textures = random.sample(textures, random.randint(1, max_textures_per_img))
-    for texture in selected_textures:
+    for i,texture in enumerate(selected_textures):
       bg = texture.copy()
       bg.paste(generated_img.img, (0,0), generated_img.img)
-      all_imgs.append(bg)
+      textured_generated_img = GeneratedImage()
+      textured_generated_img.img = bg
+      textured_generated_img.annotations = generated_img.annotations
+      textured_generated_img.fname = f'{i}-{textured_generated_img.fname}'
+      textured_generated_imgs.append(textured_generated_img)
     return all_imgs
 
   with Pool(max_workers=num_workers) as pool:
-    textured_imgs = pool.map(_add, generated_imgs)
-  
-  for textured_img_group in textured_imgs:
-    fname = f'{secrets.token_hex(8)}.png'
-    for i,textured_img in enumerate(textured_img_group):
-      textured_img.save(os.path.join(save_to, f'{i}-{fname}'))
+    textured_generated_imgs = pool.map(_add, generated_imgs)
+  save_generated_imgs(textured_generated_imgs, save_to)
+  save_generated_annotations(textured_generated_imgs, os.path.join(save_to, 'annotations.json'))

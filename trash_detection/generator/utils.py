@@ -14,8 +14,8 @@ def get_bbox(left, upper, width, height):
 
 def save_objects(objects, fpath):
   for obj in objects:
-    object_fname = f'{obj.category}--{secrets.token_hex(8)}.png'
-    obj.img.save(os.path.join(fpath, object_fname))
+    fname = f'{obj.category}--{secrets.token_hex(8)}.png'
+    obj.img.save(os.path.join(fpath, fname))
 
 
 def save_generated_imgs(generated_imgs, fpath):
@@ -28,9 +28,17 @@ def save_generated_annotations(generated_imgs, fpath):
   obj_id = 1 # object id always starts from 1 in COCO
   for i,generated_img in enumerate(generated_imgs):
     img_details = {'id':i, 'file_name':generated_img.fname}
-    for obj in generated_img.objects:
-      obj_details = {'id':obj_id, 'image_id':i, 'bbox':obj.bbox, 'category':obj.category}
-      annotations_dict['annotations'].append(obj_details)
+    if generated_img.annotations is None:
+      generated_img.annotations = []
+      for obj in generated_img.objects:
+        obj_details = {'id':obj_id, 'image_id':i, 'bbox':obj.bbox, 'category':obj.category}
+        generated_img.annotations.append(obj_details)
+        obj_id+=1
+    else:
+      for annotation in generated_img.annotations:
+        annotation['id'] = obj_id
+        obj_id+=1
+    annotations_dict['annotations']+=generated_img.annotations
     annotations_dict['images'].append(img_details)
   with open(fpath, 'w') as fp:
     json.dump(annotations_dict, fp)
@@ -72,3 +80,18 @@ def get_imgs_from_dir(dir_path, ext=None, num_workers=4):
     imgs = pool.map(_get_img, fpaths)
   imgs = list(filter(lambda img:img is not None, imgs))
   return imgs
+
+
+def get_generated_imgs_from_annotations(annotations_fpath, num_workers):
+  from .generate import GeneratedImage
+  parent_dir = os.path.dirname(annotations_fpath)
+  annotations = get_annotations(annotations_fpath)
+  all_img_fnames = list(annotations['images'].keys())
+  def _get_generated_img(fname):
+    generated_img = GeneratedImage()
+    generated_img.img = Image.open(os.path.join(parent_dir+fname))
+    generated_img.fname = fname
+    generated_img.annotations = annotations['annotations']
+    return generated_img
+  with ThreadPoolExecutor(max_workers=num_workers) as pool:
+    return pool.map(_get_generated_img)

@@ -33,7 +33,7 @@ class RescaleT(object):
 		self.output_size = output_size
 
 	def __call__(self,sample):
-		imidx, image, label = sample['imidx'], sample['image'],sample['label']
+		imidx, image, label = sample['imidx'], sample['image'], sample['label']
 		h, w = image.shape[:2]
 		if isinstance(self.output_size,int):
 			if h > w:
@@ -45,7 +45,7 @@ class RescaleT(object):
 		new_h, new_w = int(new_h), int(new_w)
 		img = transform.resize(image,(self.output_size,self.output_size),mode='constant')
 		lbl = transform.resize(label,(self.output_size,self.output_size),mode='constant', order=0, preserve_range=True)
-		return {'imidx':imidx, 'image':img,'label':lbl}
+		return {'imidx':imidx, 'image':img, 'label':lbl}
 
 
 class RandomCrop(object):
@@ -68,7 +68,7 @@ class RandomCrop(object):
 		left = np.random.randint(0, w - new_w)
 		image = image[top: top + new_h, left: left + new_w]
 		label = label[top: top + new_h, left: left + new_w]
-		return {'imidx':imidx,'image':image, 'label':label}
+		return {'imidx':imidx, 'image':image, 'label':label}
 
 
 class ToTensorLab(object):
@@ -120,7 +120,7 @@ class TrainDataset(Dataset):
 
 BATCH_SIZE = 8
 NUM_WORKERS = 1
-MODEL_SAVE_FREQ = None
+MODEL_SAVE_FREQ = None # save after a number of epochs
 EPOCHS = 100
 MODEL_PATH = 'models/u2netp_script_model.pt'
 SAVE_MODEL_WEIGHTS_IN = 'models/u2netp_weights/u2net_test'
@@ -141,7 +141,6 @@ def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
 	loss5 = bce_loss(d5,labels_v)
 	loss6 = bce_loss(d6,labels_v)
 	loss = loss0 + loss1 + loss2 + loss3 + loss4 + loss5 + loss6
-	# print("l0: %3f, l1: %3f, l2: %3f, l3: %3f, l4: %3f, l5: %3f, l6: %3f\n"%(loss0.data.item(),loss1.data.item(),loss2.data.item(),loss3.data.item(),loss4.data.item(),loss5.data.item(),loss6.data.item()))
 	return loss0, loss
 
 
