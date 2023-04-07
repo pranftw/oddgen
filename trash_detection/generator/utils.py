@@ -95,3 +95,14 @@ def get_generated_imgs_from_annotations(annotations_fpath, num_workers):
     return generated_img
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
     return pool.map(_get_generated_img)
+
+
+def get_objects(dir_path):
+  from .objects import ObjectImage
+  imgs = get_imgs_from_dir(dir_path, ext='.png')
+  obj_imgs = []
+  for img in imgs:
+    category, fname = os.path.basename(img.filename).split('--')
+    obj_img = ObjectImage(img, int(category), [0]*4)
+    obj_imgs.append(obj_img)
+  return obj_imgs
