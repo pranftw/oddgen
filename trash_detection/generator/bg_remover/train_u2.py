@@ -15,6 +15,7 @@ from torch.autograd import Variable
 from torchvision import transforms, utils
 from skimage import io, transform, color
 from utils import load_model
+import tqdm
 import os
 import torch.nn.functional as F
 import torch
@@ -71,7 +72,6 @@ class RandomCrop(object):
 
 
 class ToTensorLab(object):
-	"""Convert ndarrays in sample to Tensors."""
 	def __call__(self, sample):
 		imidx, image, label = sample['imidx'], sample['image'], sample['label']
 		tmpLbl = np.zeros(label.shape)
@@ -92,7 +92,7 @@ class ToTensorLab(object):
 		return {'imidx':torch.from_numpy(imidx), 'image': torch.from_numpy(tmpImg), 'label': torch.from_numpy(tmpLbl)}
 
 
-class SalObjDataset(Dataset):
+class TrainDataset(Dataset):
 	def __init__(self, img_paths, lbl_paths, num_data, transform=None):
 		num_img_paths = len(img_paths)
 		num_lbl_paths = len(lbl_paths)
@@ -120,7 +120,7 @@ class SalObjDataset(Dataset):
 
 BATCH_SIZE = 8
 NUM_WORKERS = 1
-MODEL_SAVE_FREQ = 200
+MODEL_SAVE_FREQ = None
 EPOCHS = 100
 MODEL_PATH = 'models/u2netp_script_model.pt'
 SAVE_MODEL_WEIGHTS_IN = 'models/u2netp_weights/u2net_test'
@@ -149,7 +149,7 @@ with open('trash_detection/ignore/crop_masks/images.txt') as fp:
 	img_paths = fp.read().split('\n')
 with open('trash_detection/ignore/crop_masks/labels.txt') as fp:
 	lbl_paths = fp.read().split('\n')
-salobj_dataset = SalObjDataset(
+train_dataset = TrainDataset(
 		img_paths=img_paths,
 		lbl_paths=lbl_paths,
 		num_data=NUM_DATA,
@@ -158,41 +158,32 @@ salobj_dataset = SalObjDataset(
 			RandomCrop(288),
 			ToTensorLab()
 		]))
-salobj_dataloader = DataLoader(salobj_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
+train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 train_num = NUM_DATA
 
 model, device = load_model(MODEL_PATH, None, strict_weights_loading=False)
 optim = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
-ite_num = 0
-running_loss = 0.0
-running_tar_loss = 0.0
-ite_num4val = 0
-for epoch in range(0, EPOCHS):
-	model.train()
-	for i, data in enumerate(salobj_dataloader):
-		ite_num = ite_num + 1
-		ite_num4val = ite_num4val + 1
+model.train()
+for epoch in range(EPOCHS):
+	running_loss = 0.0
+	running_tar_loss = 0.0
+	with tqdm.tqdm(train_dataloader, unit='batch', mininterval=0) as tobj:
+		tobj.set_description(f'Epoch {epoch+1}: ')
+		for i, data in enumerate(tobj):
+			inputs, labels = data['image'].type(torch.FloatTensor), data['label'].type(torch.FloatTensor)
+			inputs_v, labels_v = Variable(inputs.to(device), requires_grad=False), Variable(labels.to(device), requires_grad=False)
 
-		inputs, labels = data['image'].type(torch.FloatTensor), data['label'].type(torch.FloatTensor)
-		inputs_v, labels_v = Variable(inputs.to(device), requires_grad=False), Variable(labels.to(device), requires_grad=False)
+			optim.zero_grad()
+			d0, d1, d2, d3, d4, d5, d6 = model(inputs_v)
+			loss2, loss = muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v)
+			loss.backward()
+			optim.step()
 
-		optim.zero_grad()
-		d0, d1, d2, d3, d4, d5, d6 = model(inputs_v)
-		loss2, loss = muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v)
-		loss.backward()
-		optim.step()
-
-		running_loss += loss.data.item()
-		running_tar_loss += loss2.data.item()
-		del d0, d1, d2, d3, d4, d5, d6, loss2, loss
-
-		print("[epoch: %3d/%3d, batch: %5d/%5d, ite: %d] train loss: %3f, tar: %3f " % (
-		epoch + 1, EPOCHS, i*BATCH_SIZE, train_num, ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))
-
-		if ite_num%MODEL_SAVE_FREQ==0:
-			torch.save(model.state_dict(), SAVE_MODEL_WEIGHTS_IN+"/bce_itr_%d_train_%3f_tar_%3f.pth" % (ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))
-			running_loss = 0.0
-			running_tar_loss = 0.0
-			model.train()
-			ite_num4val = 0
+			running_loss += loss.data.item()
+			running_tar_loss += loss2.data.item()
+			del d0, d1, d2, d3, d4, d5, d6, loss2, loss
+			tobj.set_postfix(f'train_loss: {(running_loss/(i+1)):.2f}, tar: {(running_tar_loss/(i+1)):.2f}')
+		if (MODEL_SAVE_FREQ is not None) and (epoch%MODEL_SAVE_FREQ==0):
+			torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
+torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/last.pth')
