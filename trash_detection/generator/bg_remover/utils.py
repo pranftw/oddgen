@@ -6,24 +6,19 @@ import secrets
 import os
 
 
-def crop_mask(args):
-  fpath, crop_dir, mask_dir = args
-  img = Image.open(fpath)
+def get_crop_mask(img):
   img_tensor = torch.tensor(np.asarray(img)).permute(2,0,1)
   alpha = img_tensor[3]
-  if not(torch.all(alpha==255.0).item()): # only executes if not all elements of alpha are 255
-    alpha_img = Image.fromarray(alpha.numpy())
-    sum_0 = alpha.sum(dim=0)!=0
-    sum_1 = alpha.sum(dim=1)!=0
-    sum_0_nz = sum_0.nonzero()
-    sum_1_nz = sum_1.nonzero()
-    le,ri = sum_0_nz[0].item(), sum_0_nz[-1].item()
-    up,lo = sum_1_nz[0].item(), sum_1_nz[-1].item()
-    cropped_img = img.crop((le,up,ri,lo))
-    cropped_alpha = alpha_img.crop((le,up,ri,lo))
-    fname = f'{secrets.token_hex(8)}.png'
-    cropped_img.save(os.path.join(crop_dir, fname))
-    cropped_alpha.save(os.path.join(mask_dir, fname))
+  alpha_img = Image.fromarray(alpha.numpy())
+  sum_0 = alpha.sum(dim=0)!=0
+  sum_1 = alpha.sum(dim=1)!=0
+  sum_0_nz = sum_0.nonzero()
+  sum_1_nz = sum_1.nonzero()
+  le,ri = sum_0_nz[0].item(), sum_0_nz[-1].item()
+  up,lo = sum_1_nz[0].item(), sum_1_nz[-1].item()
+  cropped_img = img.crop((le,up,ri,lo))
+  cropped_alpha = alpha_img.crop((le,up,ri,lo))
+  return cropped_img, cropped_alpha
 
 
 def generate_crop_masks(fpaths, save_to):
@@ -31,8 +26,17 @@ def generate_crop_masks(fpaths, save_to):
   mask_dir = os.path.join(save_to, 'mask')
   os.mkdir(crop_dir)
   os.mkdir(mask_dir)
+
+  def _crop_mask(fpath):
+    img = Image.open(fpath)
+    crop_mask = get_crop_mask(img)
+    fname = f'{secrets.token_hex(8)}.png'
+    cropped_img, cropped_alpha = crop_mask
+    cropped_img.save(os.path.join(crop_dir, fname))
+    cropped_alpha.save(os.path.join(mask_dir, fname))
+
   with ThreadPoolExecutor() as pool:
-    pool.map(crop_mask, [(fpath, crop_dir, mask_dir) for fpath in fpaths])
+    pool.map(_crop_mask, fpaths)
 
 
 def load_model(model_path, weights_path, strict_weights_loading=True):

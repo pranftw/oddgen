@@ -75,13 +75,12 @@ class ToTensorLab(object):
 	def __call__(self, sample):
 		imidx, image, label = sample['imidx'], sample['image'], sample['label']
 		tmpLbl = np.zeros(label.shape)
-		if(np.max(label)<1e-6):
-			label = label
-		else:
-			label = label/255.
+		max_label = np.max(label)
+		max_img = np.max(image)
+		label = label if (max_label<1e-6 or max_label==0) else label/max_label
 		# change the color space flag=0
 		tmpImg = np.zeros((image.shape[0],image.shape[1],3))
-		image = image/255.
+		image = image if (max_image<1e-6 or max_image==0) else image/max_image
 		# normalizing
 		tmpImg[:,:,0] = (image[:,:,0]-0.485)/0.229
 		tmpImg[:,:,1] = (image[:,:,1]-0.456)/0.224
