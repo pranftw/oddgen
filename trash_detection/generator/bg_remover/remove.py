@@ -26,7 +26,7 @@ class BGRemoverDataset(Dataset):
   def __getitem__(self, idx):
     img = torch.tensor(self.objects[idx].img_np, dtype=torch.float32).permute(2,0,1)
     img = F.interpolate(torch.unsqueeze(img,0), self.upsample_size, mode="bilinear").type(torch.uint8)
-    img = torch.divide(img,255.0)
+    img = torch.divide(img, 255.0)
     img = normalize(img, self.mean, self.std)
     return img.squeeze(0)
 
@@ -43,7 +43,6 @@ def remove_bg(objects, batch_size, model_path='models/isnet_script_model.pt', we
       output = model(data_batch.to(device))
       outputs+=output[0][0]
       del output
-    
     for obj, output in zip(objects, outputs):
       process_output(output, obj)
   return objects
@@ -61,7 +60,6 @@ def remove_bg_u2(objects, batch_size, model_path='models/u2net_script_model.pt',
       output = model(data_batch.to(device))
       outputs+=output[0]
       del output
-  
     for obj, output in zip(objects, outputs):
       process_output(output, obj)
   return objects

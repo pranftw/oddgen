@@ -74,7 +74,7 @@ def get_annotations(annotations_fpath, with_segmentation=False):
 def get_imgs_from_dir(dir_path, ext=None, num_workers=4):
   fpaths = os.listdir(dir_path)
   def _get_img(fpath):
-    if (ext is not None) and (fpath.endswith(ext)):
+    if (ext is not None) and (fpath.endswith(ext)): # ext can also be a tuple of str
       return Image.open(os.path.join(dir_path, fpath))
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
     imgs = pool.map(_get_img, fpaths)
