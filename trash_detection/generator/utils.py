@@ -37,6 +37,7 @@ def save_generated_annotations(generated_imgs, fpath):
     else:
       for annotation in generated_img.annotations:
         annotation['id'] = obj_id
+        annotation['image_id'] = i
         obj_id+=1
     annotations_dict['annotations']+=generated_img.annotations
     annotations_dict['images'].append(img_details)
