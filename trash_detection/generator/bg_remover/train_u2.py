@@ -182,7 +182,7 @@ for epoch in range(EPOCHS):
 			running_loss += loss.data.item()
 			running_tar_loss += loss2.data.item()
 			del d0, d1, d2, d3, d4, d5, d6, loss2, loss
-			tobj.set_postfix(f'train_loss: {(running_loss/(i+1)):.2f}, tar: {(running_tar_loss/(i+1)):.2f}')
+			tobj.set_postfix({'train_loss': f'{(running_loss/(i+1)):.2f}', 'tar': f'{(running_tar_loss/(i+1)):.2f}'})
 		if (MODEL_SAVE_FREQ is not None) and (epoch%MODEL_SAVE_FREQ==0):
 			torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
 torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/last.pth')
