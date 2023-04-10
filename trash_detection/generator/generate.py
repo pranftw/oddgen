@@ -74,7 +74,7 @@ def add_texture(generated_imgs, textures_fpath, max_textures_per_img, img_size, 
       textured_generated_img = GeneratedImage()
       textured_generated_img.img = bg
       textured_generated_img.annotations = deepcopy(generated_img.annotations)
-      textured_generated_img.fname = f'{i}-{textured_generated_img.fname}'
+      textured_generated_img.fname = f'{i}--{textured_generated_img.fname}'
       textured_generated_imgs.append(textured_generated_img)
     return textured_generated_imgs
 
