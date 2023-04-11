@@ -75,12 +75,12 @@ class ToTensorLab(object):
 	def __call__(self, sample):
 		imidx, image, label = sample['imidx'], sample['image'], sample['label']
 		tmpLbl = np.zeros(label.shape)
-		max_label = np.max(label)
+		max_lbl = np.max(label)
 		max_img = np.max(image)
-		label = label if (max_label<1e-6 or max_label==0) else label/max_label
+		label = label if (max_lbl<1e-6 or max_lbl==0) else label/max_lbl
 		# change the color space flag=0
 		tmpImg = np.zeros((image.shape[0],image.shape[1],3))
-		image = image if (max_image<1e-6 or max_image==0) else image/max_image
+		image = image if (max_img<1e-6 or max_img==0) else image/max_img
 		# normalizing
 		tmpImg[:,:,0] = (image[:,:,0]-0.485)/0.229
 		tmpImg[:,:,1] = (image[:,:,1]-0.456)/0.224
@@ -143,9 +143,9 @@ def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
 	return loss0, loss
 
 
-with open('trash_detection/ignore/crop_masks/images.txt') as fp:
+with open('/home/pranav/Documents/py/trash_detection/ignore/crop_masks/images.txt') as fp:
 	img_paths = fp.read().split('\n')
-with open('trash_detection/ignore/crop_masks/labels.txt') as fp:
+with open('/home/pranav/Documents/py/trash_detection/ignore/crop_masks/labels.txt') as fp:
 	lbl_paths = fp.read().split('\n')
 train_dataset = TrainDataset(
 		img_paths=img_paths,
@@ -167,7 +167,7 @@ for epoch in range(EPOCHS):
 	running_loss = 0.0
 	running_tar_loss = 0.0
 	with tqdm.tqdm(train_dataloader, unit='batch', mininterval=0) as tobj:
-		tobj.set_description(f'Epoch {epoch+1}: ')
+		tobj.set_description(f'Epoch {epoch+1}')
 		for i, data in enumerate(tobj):
 			inputs, labels = data['image'].type(torch.FloatTensor), data['label'].type(torch.FloatTensor)
 			inputs_v, labels_v = Variable(inputs.to(device), requires_grad=False), Variable(labels.to(device), requires_grad=False)
