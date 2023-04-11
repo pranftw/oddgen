@@ -2,6 +2,7 @@ from PIL import Image
 from pathos.multiprocessing import ProcessingPool as Pool
 from .objects import extract_objects, paste_objects, resize
 from .utils import save_generated_imgs, save_generated_annotations, get_imgs_from_dir
+from copy import deepcopy
 import random
 import os
 import secrets
@@ -72,12 +73,15 @@ def add_texture(generated_imgs, textures_fpath, max_textures_per_img, img_size, 
       bg.paste(generated_img.img, (0,0), generated_img.img)
       textured_generated_img = GeneratedImage()
       textured_generated_img.img = bg
-      textured_generated_img.annotations = generated_img.annotations
-      textured_generated_img.fname = f'{i}-{textured_generated_img.fname}'
+      textured_generated_img.annotations = deepcopy(generated_img.annotations)
+      textured_generated_img.fname = f'{i}--{textured_generated_img.fname}'
       textured_generated_imgs.append(textured_generated_img)
-    return all_imgs
+    return textured_generated_imgs
 
   with Pool(max_workers=num_workers) as pool:
-    textured_generated_imgs = pool.map(_add, generated_imgs)
+    outputs = pool.map(_add, generated_imgs)
+    textured_generated_imgs = []
+    for output in outputs:
+      textured_generated_imgs+=output
   save_generated_imgs(textured_generated_imgs, save_to)
   save_generated_annotations(textured_generated_imgs, os.path.join(save_to, 'annotations.json'))
