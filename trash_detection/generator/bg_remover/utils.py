@@ -46,9 +46,9 @@ def generate_crop_masks(fpaths, save_to, bg_img=None):
     pool.map(_crop_mask, fpaths)
 
 
-def load_model(model_path, weights_path, strict_weights_loading=True):
+def load_model(model_path, weights_path, strict_weights_loading=True, device=None):
   parent_dir = os.path.dirname(__file__)
-  device = 'cuda' if torch.cuda.is_available() else 'cpu'
+  if device is None: device = 'cuda' if torch.cuda.is_available() else 'cpu'
   model = torch.jit.load(os.path.join(parent_dir, model_path)).to(device)
   if weights_path is not None:
     model.load_state_dict(torch.load(os.path.join(parent_dir, weights_path)), strict=strict_weights_loading)
