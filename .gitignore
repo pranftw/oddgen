@@ -6,3 +6,4 @@ example.py
 DIS
 model_venv
 *.pt*
+run_train_u2.sh

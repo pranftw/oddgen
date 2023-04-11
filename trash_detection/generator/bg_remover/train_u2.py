@@ -23,6 +23,7 @@ import torchvision
 import numpy as np
 import random
 import math
+import argparse
 
 
 # <-----------------------------DATALOADER------------------------->
@@ -115,23 +116,42 @@ class TrainDataset(Dataset):
 		return sample
 
 
+# <-----------------------------ARGS HANDLING----------------------------->
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--imgs_path', type=str, required=True)
+parser.add_argument('--lbls_path', type=str, required=True)
+parser.add_argument('--num_epochs', type=int, required=True)
+parser.add_argument('--save_model_weights_in', type=str, required=True)
+parser.add_argument('--batch_size', type=int, nargs='?', default=8)
+parser.add_argument('--num_workers', type=int, nargs='?', default=1)
+parser.add_argument('--num_data', type=int, nargs='?', default=None)
+parser.add_argument('--model_save_freq', type=int, nargs='?', default=None)
+parser.add_argument('--model_path', type=str, nargs='?', default='models/u2netp_script_model.pt')
+
+args = parser.parse_args()
+
+
 # <-----------------------------TRAINING----------------------------->
 
-BATCH_SIZE = 8
-NUM_WORKERS = 1
-MODEL_SAVE_FREQ = None # save after a number of epochs
-EPOCHS = 100
-MODEL_PATH = 'models/u2netp_script_model.pt'
-SAVE_MODEL_WEIGHTS_IN = 'models/u2netp_weights/u2net_test'
-NUM_DATA = 100 # if None, use all the data in the dataset
+BATCH_SIZE = args.batch_size
+NUM_WORKERS = args.num_workers
+MODEL_SAVE_FREQ = args.model_save_freq # save after a number of epochs
+NUM_EPOCHS = args.num_epochs
+MODEL_PATH = args.model_path
+SAVE_MODEL_WEIGHTS_IN = args.save_model_weights_in
+NUM_DATA = args.num_data # if None, use all the data in the dataset
+IMGS_PATH = args.imgs_path
+LBLS_PATH = args.lbls_path
 
 try:
 	os.mkdir(SAVE_MODEL_WEIGHTS_IN)
 except FileExistsError:
-	raise ValueError(f'Directory SAVE_MODEL_WEIGHTS_IN is not empty!')
+	if len(os.listdir(SAVE_MODEL_WEIGHTS_IN))>0:
+		raise ValueError(f'Directory SAVE_MODEL_WEIGHTS_IN-{SAVE_MODEL_WEIGHTS_IN} is not empty!')
 
-bce_loss = nn.BCELoss(reduction='mean')
 def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
+	bce_loss = nn.BCELoss(reduction='mean')
 	loss0 = bce_loss(d0,labels_v)
 	loss1 = bce_loss(d1,labels_v)
 	loss2 = bce_loss(d2,labels_v)
@@ -143,9 +163,9 @@ def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
 	return loss0, loss
 
 
-with open('/home/pranav/Documents/py/trash_detection/ignore/crop_masks/images.txt') as fp:
+with open(IMGS_PATH) as fp:
 	img_paths = fp.read().split('\n')
-with open('/home/pranav/Documents/py/trash_detection/ignore/crop_masks/labels.txt') as fp:
+with open(LBLS_PATH) as fp:
 	lbl_paths = fp.read().split('\n')
 train_dataset = TrainDataset(
 		img_paths=img_paths,
@@ -163,7 +183,7 @@ model, device = load_model(MODEL_PATH, None, strict_weights_loading=False)
 optim = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
 model.train()
-for epoch in range(EPOCHS):
+for epoch in range(NUM_EPOCHS):
 	running_loss = 0.0
 	running_tar_loss = 0.0
 	with tqdm.tqdm(train_dataloader, unit='batch', mininterval=0) as tobj:
