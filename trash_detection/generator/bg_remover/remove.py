@@ -51,7 +51,7 @@ def remove_bg(objects, batch_size, model_path='models/isnet_script_model.pt', we
 def remove_bg_u2(objects, batch_size, model_path='models/u2net_script_model.pt', weights_path='models/u2net.pth'):
   model, device = load_model(model_path, weights_path, strict_weights_loading=False)
   preprocess(objects)
-  dataset = BGRemoverDataset(objects, (512,512), [0.406,0.485,0.456], [0.225,0.229,0.224])
+  dataset = BGRemoverDataset(objects, (320,320), [0.406,0.485,0.456], [0.225,0.229,0.224])
   dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
   with torch.no_grad():
