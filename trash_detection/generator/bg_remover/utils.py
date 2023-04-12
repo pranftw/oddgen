@@ -51,6 +51,6 @@ def load_model(model_path, weights_path, strict_weights_loading=True, device=Non
   if device is None: device = 'cuda' if torch.cuda.is_available() else 'cpu'
   model = torch.jit.load(os.path.join(parent_dir, model_path)).to(device)
   if weights_path is not None:
-    model.load_state_dict(torch.load(os.path.join(parent_dir, weights_path)), strict=strict_weights_loading)
+    model.load_state_dict(torch.load(os.path.join(parent_dir, weights_path), map_location=device), strict=strict_weights_loading)
   model.eval()
   return model, device
