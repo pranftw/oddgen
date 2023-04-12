@@ -49,29 +49,6 @@ class RescaleT(object):
 		return {'imidx':imidx, 'image':img, 'label':lbl}
 
 
-class RandomCrop(object):
-	def __init__(self,output_size):
-		assert isinstance(output_size, (int, tuple))
-		if isinstance(output_size, int):
-			self.output_size = (output_size, output_size)
-		else:
-			assert len(output_size) == 2
-			self.output_size = output_size
-
-	def __call__(self,sample):
-		imidx, image, label = sample['imidx'], sample['image'], sample['label']
-		if random.random() >= 0.5:
-			image = image[::-1]
-			label = label[::-1]
-		h, w = image.shape[:2]
-		new_h, new_w = self.output_size
-		top = np.random.randint(0, h - new_h)
-		left = np.random.randint(0, w - new_w)
-		image = image[top: top + new_h, left: left + new_w]
-		label = label[top: top + new_h, left: left + new_w]
-		return {'imidx':imidx, 'image':image, 'label':label}
-
-
 class ToTensorLab(object):
 	def __call__(self, sample):
 		imidx, image, label = sample['imidx'], sample['image'], sample['label']
@@ -171,11 +148,8 @@ train_dataset = TrainDataset(
 		img_paths=img_paths,
 		lbl_paths=lbl_paths,
 		num_data=NUM_DATA,
-		transform=transforms.Compose([
-			RescaleT(320),
-			RandomCrop(288),
-			ToTensorLab()
-		]))
+		transform=transforms.Compose([RescaleT(320), ToTensorLab()])
+	)
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 train_num = NUM_DATA
 
