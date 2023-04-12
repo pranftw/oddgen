@@ -82,12 +82,21 @@ def save_txt_fpaths_crop_masks(crop_mask_dir, num_reqd=None):
   _save('mask', mask_fpaths)
 
 
+def get_crop_mask_fpaths_from_txt(crop_mask_dir):
+  def _get_fpaths(name):
+    with open(os.path.join(crop_mask_dir, name, f'{name}.txt')) as fp:
+      fpaths_str = fp.read()
+    fpaths = fpaths_str.split('\n')
+    return fpaths
+  return _get_fpaths('crop'), _get_fpaths('mask')
+
+
 def add_padding_crop_masks(crop_mask_dir, max_padding, save_to, num_workers=4):
   padded_crop_dir = os.path.join(save_to, 'crop')
   padded_mask_dir = os.path.join(save_to, 'mask')
   os.makedirs(padded_crop_dir)
   os.makedirs(padded_mask_dir)
-  crop_fpaths, mask_fpaths = get_fpaths_crop_mask(crop_mask_dir)
+  crop_fpaths, mask_fpaths = get_crop_mask_fpaths_from_txt(crop_mask_dir) # this takes the paths directly from the saved txt fpaths
 
   def _add_padding(args):
     crop_fpath, mask_fpath = args
