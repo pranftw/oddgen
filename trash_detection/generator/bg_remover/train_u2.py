@@ -160,7 +160,7 @@ model.train()
 for epoch in range(NUM_EPOCHS):
 	running_loss = 0.0
 	running_tar_loss = 0.0
-	with tqdm.tqdm(train_dataloader, unit='batch', mininterval=0) as tobj:
+	with tqdm.tqdm(train_dataloader, unit='batch') as tobj:
 		tobj.set_description(f'Epoch {epoch+1}')
 		for i, data in enumerate(tobj):
 			inputs, labels = data['image'].type(torch.FloatTensor), data['label'].type(torch.FloatTensor)
@@ -176,6 +176,6 @@ for epoch in range(NUM_EPOCHS):
 			running_tar_loss += loss2.data.item()
 			del d0, d1, d2, d3, d4, d5, d6, loss2, loss
 			tobj.set_postfix({'train_loss': f'{(running_loss/(i+1)):.2f}', 'tar': f'{(running_tar_loss/(i+1)):.2f}'})
-		if (MODEL_SAVE_FREQ is not None) and (epoch%MODEL_SAVE_FREQ==0):
-			torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
+	if (MODEL_SAVE_FREQ is not None) and (epoch%MODEL_SAVE_FREQ==0):
+		torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
 torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/last.pth')
