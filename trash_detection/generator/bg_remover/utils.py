@@ -114,14 +114,18 @@ def add_padding_crop_masks(crop_mask_dir, max_padding, save_to, num_workers=4):
     pool.map(_add_padding, [(crop_fpath, mask_fpath) for crop_fpath, mask_fpath in zip(crop_fpaths, mask_fpaths)])
 
 
-def add_bg_to_crop(crop_mask_dir, bgs, max_imgs_per_bg, save_to, num_workers=4):
+def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, num_workers=4):
   bg_crop_dir = os.path.join(save_to, 'crop')
+  bg_mask_dir = os.path.join(save_to, 'mask')
   os.makedirs(bg_crop_dir)
-  crop_fpaths, _ = get_crop_mask_fpaths_from_txt(crop_mask_dir) # this takes the paths directly from the saved txt fpaths
+  os.makedirs(bg_mask_dir)
+  crop_fpaths, mask_fpaths = get_crop_mask_fpaths_from_txt(crop_mask_dir) # this takes the paths directly from the saved txt fpaths
 
-  def _add_bg(crop_fpath):
+  def _add_bg(args):
+    crop_fpath, mask_fpath = args
     num_bgs = random.randint(1, max_imgs_per_bg)
     crop_img = Image.open(crop_fpath)
+    mask_img = Image.open(mask_fpath)
     chosen_bgs = random.sample(bgs, num_bgs)
     for i, bg in enumerate(chosen_bgs):
       bg_img = bg.copy()
@@ -129,6 +133,6 @@ def add_bg_to_crop(crop_mask_dir, bgs, max_imgs_per_bg, save_to, num_workers=4):
       bg_img.paste(crop_img, (0,0), crop_img)
       crop_with_bg_img = bg_img
       crop_with_bg_img.save(os.path.join(bg_crop_dir, f'{i}--{os.path.basename(crop_img.filename)}'))
-  
+      mask_img.copy().save(os.path.join(bg_mask_dir, f'{i}--{os.path.basename(mask_img.filename)}'))
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
-    pool.map(_add_bg, [crop_fpath for crop_fpath in crop_fpaths])
+    pool.map(_add_bg, [(crop_fpath, mask_fpath) for crop_fpath, mask_fpath in zip(crop_fpaths, mask_fpaths)])
