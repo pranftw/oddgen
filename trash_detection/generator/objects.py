@@ -15,10 +15,10 @@ class ObjectImage:
     self.mask = None
 
 
-def extract_objects(annotations_fpath, num_workers, bg_remover_batch_size, crop_padding=0, save_to_fpath=None):
+def extract_objects(annotations_fpath, bg_remover, num_workers=4, crop_padding=0, save_to_fpath=None):
   annotations_dict = get_annotations(annotations_fpath)
   cropped_objects = crop(annotations_dict, num_workers, padding=crop_padding)
-  wo_bg_objects = remove_bg(cropped_objects, bg_remover_batch_size)
+  wo_bg_objects = bg_remover(cropped_objects)
   if save_to_fpath is not None:
     save_objects(wo_bg_objects, save_to_fpath)
   return wo_bg_objects
@@ -61,12 +61,6 @@ def crop(annotations_dict, num_workers, padding):
   for result in results:
     cropped_objects+=result
   return cropped_objects
-
-
-def remove_bg(objects, batch_size):
-  from .bg_remover import remove_bg_u2 as bg_remover
-  bg_remover(objects, batch_size)
-  return objects
 
 
 def resize(objects, size):

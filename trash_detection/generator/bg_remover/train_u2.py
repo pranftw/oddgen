@@ -121,9 +121,9 @@ NUM_DATA = args.num_data # if None, use all the data in the dataset
 IMGS_PATH = args.imgs_path
 LBLS_PATH = args.lbls_path
 
-try:
+if not os.path.exists(SAVE_MODEL_WEIGHTS_IN):
 	os.mkdir(SAVE_MODEL_WEIGHTS_IN)
-except FileExistsError:
+else:
 	if len(os.listdir(SAVE_MODEL_WEIGHTS_IN))>0:
 		raise ValueError(f'Directory SAVE_MODEL_WEIGHTS_IN-{SAVE_MODEL_WEIGHTS_IN} is not empty!')
 
