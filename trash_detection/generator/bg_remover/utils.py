@@ -32,22 +32,15 @@ def get_crop_mask(img):
   return cropped_img, cropped_alpha
 
 
-def generate_crop_masks(fpaths, save_to, bg_img=None, num_workers=4):
+def generate_crop_masks(fpaths, save_to, num_workers=4):
   crop_dir = os.path.join(save_to, 'crop')
   mask_dir = os.path.join(save_to, 'mask')
   os.mkdir(crop_dir)
   os.mkdir(mask_dir)
-  if bg_img is not None:
-    bg_img = bg_img.convert('RGBA')
 
   def _crop_mask(fpath):
     img = Image.open(fpath)
     cropped_img, cropped_alpha = get_crop_mask(img)
-    if bg_img is not None:
-      cropped_img_with_bg = bg_img.copy()
-      cropped_img_with_bg = cropped_img_with_bg.resize(cropped_img.size)
-      cropped_img_with_bg.paste(cropped_img, (0,0), cropped_img)
-      cropped_img = cropped_img_with_bg
 
     fname = f'{secrets.token_hex(8)}.png'
     cropped_img.save(os.path.join(crop_dir, fname))
