@@ -84,7 +84,8 @@ class TrainDataset(Dataset):
 		return len(self.img_paths)
 	
 	def __getitem__(self, idx):
-		image = np.asarray(Image.open(self.img_paths[idx]).convert('RGB')) # CxWxH
+		color_jitter = transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5)
+		image = np.asarray(color_jitter(Image.open(self.img_paths[idx])).convert('RGB')) # CxWxH
 		label = np.asarray(Image.open(self.lbl_paths[idx]))[:,:,np.newaxis] # WxH
 		imidx = np.array([idx])
 		sample = {'imidx':imidx, 'image':image, 'label':label}
