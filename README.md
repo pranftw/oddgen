@@ -1,5 +1,11 @@
 # TrashGen
 
+<br>
+  <div align="center">
+    <img width="251" alt="image" src="logo.png">
+  </div>
+<br>
+
 ## Installation
 ```bash
 git clone https://github.com/pranftw/trashgen.git
