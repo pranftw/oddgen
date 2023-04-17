@@ -31,17 +31,6 @@ class BGRemoverDataset(Dataset):
     return img.squeeze(0)
 
 
-class BGRemover:
-  def __init__(self, remover=remove_bg_u2, batch_size=1, model_path='models/u2net_script_model.pt', weights_path='models/u2net.pth'):
-    self.remover = remover
-    self.batch_size = batch_size
-    self.model_path = model_path
-    self.weights_path = weights_path
-  
-  def __call__(self, objects):
-    self.remover(objects, self.batch_size, self.model_path, self.weights_path)
-
-
 def remove_bg_dis(objects, batch_size, model_path, weights_path):
   # model: models/isnet_script_model.pt
   # weights: models/isnet-general-use.pth
@@ -103,3 +92,14 @@ def process_output(output, obj):
   orig_object.putalpha(pil_mask)
   bg_removed_object = orig_object.crop(get_crop_box(obj.padding_amounts, orig_object.size))
   obj.img = bg_removed_object
+
+
+class BGRemover:
+  def __init__(self, remover=remove_bg_u2, batch_size=1, model_path='models/u2net_script_model.pt', weights_path='models/u2net.pth'):
+    self.remover = remover
+    self.batch_size = batch_size
+    self.model_path = model_path
+    self.weights_path = weights_path
+  
+  def __call__(self, objects):
+    return self.remover(objects, self.batch_size, self.model_path, self.weights_path)
