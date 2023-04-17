@@ -9,6 +9,7 @@
 
 
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from PIL import Image
 from torch import nn
 from torch.autograd import Variable
@@ -102,6 +103,7 @@ parser.add_argument('--lbls_path', type=str, required=True)
 parser.add_argument('--device', type=str, default=None)
 parser.add_argument('--num_epochs', type=int, required=True)
 parser.add_argument('--save_model_weights_in', type=str, required=True)
+parser.add_argument('--log_dir', type=str, required=True)
 parser.add_argument('--batch_size', type=int, nargs='?', default=8)
 parser.add_argument('--num_workers', type=int, nargs='?', default=1)
 parser.add_argument('--num_data', type=int, nargs='?', default=None)
@@ -123,6 +125,7 @@ NUM_DATA = args.num_data # if None, use all the data in the dataset
 IMGS_PATH = args.imgs_path
 LBLS_PATH = args.lbls_path
 DEVICE = args.device
+LOG_DIR = args.log_dir
 
 if not os.path.exists(SAVE_MODEL_WEIGHTS_IN):
 	os.mkdir(SAVE_MODEL_WEIGHTS_IN)
@@ -157,6 +160,7 @@ train_num = NUM_DATA
 
 model, device = load_model(MODEL_PATH, None, strict_weights_loading=False, device=DEVICE)
 optim = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+writer = SummaryWriter(log_dir=LOG_DIR)
 
 model.train()
 for epoch in range(NUM_EPOCHS):
@@ -177,7 +181,18 @@ for epoch in range(NUM_EPOCHS):
 			running_loss += loss.data.item()
 			running_tar_loss += loss2.data.item()
 			del d0, d1, d2, d3, d4, d5, d6, loss2, loss
-			tobj.set_postfix({'train_loss': f'{(running_loss/(i+1)):.2f}', 'tar': f'{(running_tar_loss/(i+1)):.2f}'})
+			tobj.set_postfix({'train_loss': f'{(running_loss/(i+1)):.2f}', 'tar_loss': f'{(running_tar_loss/(i+1)):.2f}'})
+		train_loss = running_loss/len(train_dataloader)
+		tar_loss = running_tar_loss/len(train_dataloader)
+		tobj.set_postfix({'train_loss': f'{train_loss:.2f}', 'tar_loss': f'{tar_loss:.2f}'})
+		
+		writer.add_scalar('epochs', epoch, epoch)
+		writer.add_scalar('train_loss', train_loss, epoch)
+		writer.add_scalar('tar_loss', tar_loss, epoch)
+		writer.flush()
+
 	if (MODEL_SAVE_FREQ is not None) and (epoch%MODEL_SAVE_FREQ==0):
 		torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
+
 torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/last.pth')
+writer.close()
