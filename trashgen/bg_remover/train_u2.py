@@ -99,6 +99,7 @@ class TrainDataset(Dataset):
 parser = argparse.ArgumentParser()
 parser.add_argument('--imgs_path', type=str, required=True)
 parser.add_argument('--lbls_path', type=str, required=True)
+parser.add_argument('--device', type=str, default=None)
 parser.add_argument('--num_epochs', type=int, required=True)
 parser.add_argument('--save_model_weights_in', type=str, required=True)
 parser.add_argument('--batch_size', type=int, nargs='?', default=8)
@@ -121,6 +122,7 @@ SAVE_MODEL_WEIGHTS_IN = args.save_model_weights_in
 NUM_DATA = args.num_data # if None, use all the data in the dataset
 IMGS_PATH = args.imgs_path
 LBLS_PATH = args.lbls_path
+DEVICE = args.device
 
 if not os.path.exists(SAVE_MODEL_WEIGHTS_IN):
 	os.mkdir(SAVE_MODEL_WEIGHTS_IN)
@@ -130,15 +132,14 @@ else:
 
 def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
 	bce_loss = nn.BCELoss(reduction='mean')
-	loss0 = bce_loss(d0,labels_v)
-	loss1 = bce_loss(d1,labels_v)
-	loss2 = bce_loss(d2,labels_v)
-	loss3 = bce_loss(d3,labels_v)
-	loss4 = bce_loss(d4,labels_v)
-	loss5 = bce_loss(d5,labels_v)
-	loss6 = bce_loss(d6,labels_v)
-	loss = loss0 + loss1 + loss2 + loss3 + loss4 + loss5 + loss6
-	return loss0, loss
+	outputs = [d0, d1, d2, d3, d4, d5, d6]
+	losses = []
+	final_loss = 0.0
+	for output in outputs:
+		loss = bce_loss(output, labels_v)
+		final_loss+=loss
+		losses.append(loss)
+	return losses[0], final_loss
 
 
 with open(IMGS_PATH) as fp:
@@ -154,7 +155,7 @@ train_dataset = TrainDataset(
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 train_num = NUM_DATA
 
-model, device = load_model(MODEL_PATH, None, strict_weights_loading=False)
+model, device = load_model(MODEL_PATH, None, strict_weights_loading=False, device=DEVICE)
 optim = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
 model.train()
