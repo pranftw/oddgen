@@ -2,7 +2,7 @@ from PIL import Image
 from pathos.multiprocessing import ProcessingPool as Pool
 from .objects import extract_objects, paste_objects, resize
 from .utils import save_generated_imgs, save_generated_annotations, get_imgs_from_dir
-from bg_remover.remove import BGRemover
+from .bg_remover.remove import BGRemover
 from copy import deepcopy
 import random
 import os
