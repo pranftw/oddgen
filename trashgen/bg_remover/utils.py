@@ -55,14 +55,16 @@ def get_fpaths_crop_mask(crop_mask_dir):
   mask_dir = os.path.join(crop_mask_dir, 'mask')
   def _get_fpaths(dir):
     filter_fn = lambda fpath:fpath.endswith('.png') # only select png images
-    fpaths = list(filter(filter_fn, os.listdir(dir)))
+    fpaths = sorted(list(filter(filter_fn, os.listdir(dir))))
     fpaths = [os.path.join(dir, fpath) for fpath in fpaths]
     return fpaths
   return _get_fpaths(crop_dir), _get_fpaths(mask_dir)
 
 
 def save_txt_fpaths_crop_masks(crop_mask_dir, num_reqd=None):
+  seed = random.randint(1000, 10000)
   def _save(name, fpaths):
+    random.seed(seed)
     dir = os.path.join(crop_mask_dir, name)
     if num_reqd is not None:
       fpaths = random.sample(fpaths, num_reqd)
