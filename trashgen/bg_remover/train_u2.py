@@ -190,7 +190,8 @@ for epoch in range(NUM_EPOCHS):
 		writer.add_scalar('tar_loss', tar_loss, epoch)
 		writer.flush()
 
-	if (MODEL_SAVE_FREQ is not None) and (epoch%MODEL_SAVE_FREQ==0):
+	if (MODEL_SAVE_FREQ is not None) and ((epoch+1)%MODEL_SAVE_FREQ==0):
+		print('Checkpoint')
 		torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
 
 torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/last.pth')
