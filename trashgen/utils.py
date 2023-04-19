@@ -103,7 +103,19 @@ def get_objects(dir_path):
   imgs = get_imgs_from_dir(dir_path, ext='.png')
   obj_imgs = []
   for img in imgs:
-    category, fname = os.path.basename(img.filename).split('--')
+    category,_ = os.path.basename(img.filename).split('--')
     obj_img = ObjectImage(img, int(category), [0]*4)
     obj_imgs.append(obj_img)
+  return obj_imgs
+
+
+def get_dir_categorized_objects(dirpath, ext='.png'):
+  # category must be an integer
+  from .objects import ObjectImage
+  obj_imgs = []
+  for category in os.listdir(dirpath):
+    imgs = get_imgs_from_dir(os.path.join(dirpath, category), ext=ext)
+    for img in imgs:
+      obj_img = ObjectImage(img, int(category), [0]*4)
+      obj_imgs.append(obj_img)
   return obj_imgs
