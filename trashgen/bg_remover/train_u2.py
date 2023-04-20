@@ -108,7 +108,8 @@ parser.add_argument('--batch_size', type=int, nargs='?', default=8)
 parser.add_argument('--num_workers', type=int, nargs='?', default=1)
 parser.add_argument('--num_data', type=int, nargs='?', default=None)
 parser.add_argument('--model_save_freq', type=int, nargs='?', default=None)
-parser.add_argument('--model_path', type=str, nargs='?', default='models/u2netp_script_model.pt')
+parser.add_argument('--model_path', type=str, nargs='?', default='models/u2net_script_model.pt')
+parser.add_argument('--weights_path', type=str, nargs='?', default=None)
 
 args = parser.parse_args()
 
@@ -120,6 +121,7 @@ NUM_WORKERS = args.num_workers
 MODEL_SAVE_FREQ = args.model_save_freq # save after a number of epochs
 NUM_EPOCHS = args.num_epochs
 MODEL_PATH = args.model_path
+WEIGHTS_PATH = args.weights_path
 SAVE_MODEL_WEIGHTS_IN = args.save_model_weights_in
 NUM_DATA = args.num_data # if None, use all the data in the dataset
 IMGS_PATH = args.imgs_path
@@ -158,7 +160,7 @@ train_dataset = TrainDataset(
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 train_num = NUM_DATA
 
-model, device = load_model(MODEL_PATH, None, strict_weights_loading=False, device=DEVICE)
+model, device = load_model(MODEL_PATH, WEIGHTS_PATH, strict_weights_loading=False, device=DEVICE)
 optim = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 writer = SummaryWriter(log_dir=LOG_DIR)
 
