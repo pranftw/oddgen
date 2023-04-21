@@ -87,7 +87,7 @@ class TrainDataset(Dataset):
 	def __getitem__(self, idx):
 		color_jitter = transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5)
 		image = np.asarray(color_jitter(Image.open(self.img_paths[idx])).convert('RGB')) # CxWxH
-		label = np.asarray(Image.open(self.lbl_paths[idx]))[:,:,np.newaxis] # WxH
+		label = np.asarray(Image.open(self.lbl_paths[idx]))[:,:,np.newaxis] # WxHx1
 		imidx = np.array([idx])
 		sample = {'imidx':imidx, 'image':image, 'label':label}
 		if self.transform:
@@ -194,7 +194,7 @@ for epoch in range(NUM_EPOCHS):
 
 	if (MODEL_SAVE_FREQ is not None) and ((epoch+1)%MODEL_SAVE_FREQ==0):
 		print('Checkpoint')
-		torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch}.pth')
+		torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/epoch{epoch+1}.pth')
 
 torch.save(model.state_dict(), f'{SAVE_MODEL_WEIGHTS_IN}/last.pth')
 writer.close()
