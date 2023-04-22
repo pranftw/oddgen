@@ -1,5 +1,6 @@
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
+from torchvision.transforms import RandomCrop
 import numpy as np
 import torch
 import secrets
@@ -109,7 +110,7 @@ def add_padding_crop_masks(crop_mask_dir, max_padding, save_to, num_workers=4):
     pool.map(_add_padding, [(crop_fpath, mask_fpath) for crop_fpath, mask_fpath in zip(crop_fpaths, mask_fpaths)])
 
 
-def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, num_workers=4):
+def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, random_crop=False, num_workers=4):
   bg_crop_dir = os.path.join(save_to, 'crop')
   bg_mask_dir = os.path.join(save_to, 'mask')
   os.makedirs(bg_crop_dir)
@@ -124,7 +125,14 @@ def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, num_workers=
     chosen_bgs = random.sample(bgs, num_bgs)
     for i, bg in enumerate(chosen_bgs):
       bg_img = bg.copy()
-      bg_img = bg_img.resize(crop_img.size)
+      if random_crop:
+        try:
+          ran_crop = RandomCrop(crop_img.size)
+          bg_img = ran_crop(crop_img)
+        except ValueError:
+          bg_img = bg_img.resize(crop_img.size)
+      else:
+        bg_img = bg_img.resize(crop_img.size)
       bg_img.paste(crop_img, (0,0), crop_img)
       crop_with_bg_img = bg_img
       crop_with_bg_img.save(os.path.join(bg_crop_dir, f'{i}--{os.path.basename(crop_img.filename)}'))
