@@ -127,8 +127,7 @@ def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, random_crop=
       bg_img = bg.copy()
       if random_crop:
         try:
-          ran_crop = RandomCrop(crop_img.size)
-          bg_img = ran_crop(crop_img)
+          bg_img = RandomCrop(crop_img.size)(crop_img)
         except ValueError:
           bg_img = bg_img.resize(crop_img.size)
       else:
