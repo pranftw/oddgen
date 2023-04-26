@@ -110,7 +110,7 @@ def add_padding_crop_masks(crop_mask_dir, max_padding, save_to, num_workers=4):
     pool.map(_add_padding, [(crop_fpath, mask_fpath) for crop_fpath, mask_fpath in zip(crop_fpaths, mask_fpaths)])
 
 
-def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, random_crop=False, num_workers=4):
+def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, bg_random_crop=False, num_workers=4):
   bg_crop_dir = os.path.join(save_to, 'crop')
   bg_mask_dir = os.path.join(save_to, 'mask')
   os.makedirs(bg_crop_dir)
@@ -125,7 +125,7 @@ def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, random_crop=
     chosen_bgs = random.sample(bgs, num_bgs)
     for i, bg in enumerate(chosen_bgs):
       bg_img = bg.copy()
-      if random_crop:
+      if bg_random_crop:
         try:
           bg_img = RandomCrop(crop_img.size)(crop_img)
         except ValueError:
