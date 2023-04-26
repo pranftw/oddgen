@@ -1,1 +1,1 @@
-from .remove import remove_bg_dis, remove_bg_u2
+from .remove import remove_bg_dis, remove_bg_u2, BGRemover

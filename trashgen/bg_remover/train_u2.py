@@ -186,8 +186,7 @@ for epoch in range(NUM_EPOCHS):
 			tobj.set_postfix({'train_loss': f'{(running_loss/(i+1)):.2f}', 'tar_loss': f'{(running_tar_loss/(i+1)):.2f}'})
 		train_loss = running_loss/len(train_dataloader)
 		tar_loss = running_tar_loss/len(train_dataloader)
-		
-		writer.add_scalar('epochs', epoch, epoch)
+
 		writer.add_scalar('train_loss', train_loss, epoch)
 		writer.add_scalar('tar_loss', tar_loss, epoch)
 		writer.flush()
