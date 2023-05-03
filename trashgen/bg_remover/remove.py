@@ -31,10 +31,10 @@ class BGRemoverDataset(Dataset):
     return img.squeeze(0)
 
 
-def remove_bg_dis(objects, batch_size, model_path, weights_path):
+def remove_bg_dis(objects, batch_size, model_path, weights_path, device=None):
   # model: models/isnet_script_model.pt
   # weights: models/isnet-general-use.pth
-  model, device = load_model(model_path, weights_path)
+  model, device = load_model(model_path, weights_path, device=device)
   preprocess(objects)
   dataset = BGRemoverDataset(objects, (1024,1024), [0.5,0.5,0.5], [1.0,1.0,1.0])
   dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
@@ -50,10 +50,10 @@ def remove_bg_dis(objects, batch_size, model_path, weights_path):
   return objects
 
 
-def remove_bg_u2(objects, batch_size, model_path, weights_path):
+def remove_bg_u2(objects, batch_size, model_path, weights_path, device=None):
   # model: models/u2net_script_model.pt
   # weights: models/u2net.pth
-  model, device = load_model(model_path, weights_path, strict_weights_loading=False)
+  model, device = load_model(model_path, weights_path, strict_weights_loading=False, device=device)
   preprocess(objects)
   dataset = BGRemoverDataset(objects, (320,320), [0.406,0.485,0.456], [0.225,0.229,0.224])
   dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
@@ -95,11 +95,12 @@ def process_output(output, obj):
 
 
 class BGRemover:
-  def __init__(self, remover=remove_bg_u2, batch_size=1, model_path='models/u2net_script_model.pt', weights_path='models/u2net.pth'):
+  def __init__(self, remover=remove_bg_u2, batch_size=1, model_path='models/u2net_script_model.pt', weights_path='models/u2net.pth', device=None):
     self.remover = remover
     self.batch_size = batch_size
     self.model_path = model_path
     self.weights_path = weights_path
+    self.device = device
   
   def __call__(self, objects):
-    return self.remover(objects, self.batch_size, self.model_path, self.weights_path)
+    return self.remover(objects, self.batch_size, self.model_path, self.weights_path, self.device)
