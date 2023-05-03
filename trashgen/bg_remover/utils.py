@@ -26,10 +26,10 @@ def get_crop_mask(img):
   sum_1 = alpha.sum(axis=1)!=0
   sum_0_nz = np.flatnonzero(sum_0)
   sum_1_nz = np.flatnonzero(sum_1)
-  le,ri = sum_0_nz[0], sum_0_nz[-1]
-  up,lo = sum_1_nz[0], sum_1_nz[-1]
-  cropped_img = img.crop((le,up,ri,lo))
-  cropped_alpha = alpha_img.crop((le,up,ri,lo))
+  left, right = sum_0_nz[0], sum_0_nz[-1]
+  upper, lower = sum_1_nz[0], sum_1_nz[-1]
+  cropped_img = img.crop((left, upper, right, lower))
+  cropped_alpha = alpha_img.crop((left, upper, right, lower))
   return cropped_img, cropped_alpha
 
 
