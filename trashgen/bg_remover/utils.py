@@ -6,6 +6,7 @@ import torch
 import secrets
 import os
 import random
+import math
 
 
 def load_model(model_path, weights_path, strict_weights_loading=True, device=None):
@@ -138,3 +139,46 @@ def add_bg_crop_masks(crop_mask_dir, bgs, max_imgs_per_bg, save_to, bg_random_cr
       mask_img.copy().save(os.path.join(bg_mask_dir, f'{i}--{os.path.basename(mask_img.filename)}'))
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
     pool.map(_add_bg, [(crop_fpath, mask_fpath) for crop_fpath, mask_fpath in zip(crop_fpaths, mask_fpaths)])
+
+
+# Different Background(BG) transforms for training
+
+def random_noise_bg(bg):
+  if random.random()>=0.5:
+    rand_img = Image.fromarray(np.random.randint(0, 50, bg.size).T.astype(np.uint8))
+    bg.paste(rand_img, (0,0), rand_img)
+  return bg
+
+
+def plain_bg_transform(img_size, with_noise=True):
+  bg = Image.new(mode='RGBA', size=img_size, color=f'#{secrets.token_hex(3)}')
+  return random_noise_bg(bg) if with_noise else bg
+
+
+def vert_bg_transform(img_size, column_width=None):
+  img_width, img_height = img_size
+  if column_width is None:
+    column_width = random.randint(1, img_width)
+  num_cols = int(math.floor(img_width/column_width))
+  strands = [plain_bg_transform((column_width, img_height), with_noise=False) for _ in range(num_cols)]
+  strands+=[plain_bg_transform((img_width-(num_cols*column_width), img_height), with_noise=False)]
+  strands_cat = np.concatenate([np.asarray(strand) for strand in strands], axis=1).astype(np.uint8)
+  bg = Image.fromarray(strands_cat)
+  return random_noise_bg(bg)
+
+
+def horiz_bg_transform(img_size, row_height=None):
+  img_width, img_height = img_size
+  if row_height is None:
+    row_height = random.randint(1, img_height)
+  num_rows = int(math.floor(img_height/row_height))
+  strands = [plain_bg_transform((img_width, row_height), with_noise=False) for _ in range(num_rows)]
+  strands+=[plain_bg_transform((img_width, img_height-(num_rows*row_height)), with_noise=False)]
+  strands_cat = np.concatenate([np.asarray(strand) for strand in strands], axis=0).astype(np.uint8)
+  bg = Image.fromarray(strands_cat)
+  return random_noise_bg(bg)
+
+
+def random_bg_transform(img_size):
+  bg_transforms = [plain_bg_transform, vert_bg_transform, horiz_bg_transform]
+  return random.choice(bg_transforms)(img_size)
