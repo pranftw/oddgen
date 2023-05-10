@@ -110,11 +110,14 @@ def get_objects(dir_path):
 
 
 def get_dir_categorized_objects(dirpath, ext='.png'):
-  # category must be an integer
+  # category must be an <category-name_category-idx>
   from .objects import ObjectImage
   obj_imgs = []
-  for category in os.listdir(dirpath):
-    imgs = get_imgs_from_dir(os.path.join(dirpath, category), ext=ext)
+  category_paths = os.listdir(dirpath)
+  if '.DS_Store' in category_paths: category_paths.remove('.DS_Store') # for macos
+  for category_path in category_paths:
+    category = category_path.split('_')[1]
+    imgs = get_imgs_from_dir(os.path.join(dirpath, category_path), ext=ext)
     for img in imgs:
       obj_img = ObjectImage(img, int(category), [0]*4)
       obj_imgs.append(obj_img)
