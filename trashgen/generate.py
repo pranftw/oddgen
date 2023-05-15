@@ -20,10 +20,9 @@ class GeneratedImage:
     self.objects = objects
 
 
-def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, object_transformations, fpath, min_objects_in_each_img=0, num_workers=4):
+def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, object_transformations, fpath, min_objects_in_each_img=0, num_workers=4, batch_size=100):
   if object_size[0]<object_size[1]:
     raise ValueError(f'First dim({object_size[0]}) should be greater than or equal to second dim({object_size[1]})')
-  new_imgs = [GeneratedImage(img_size=img_size) for _ in range(num_imgs)]
 
   def _generate(new_img):
     selected_objects = random.sample(objects, random.randint(min_objects_in_each_img, max_objects_in_each_img))
@@ -35,10 +34,22 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
     paste_objects(selected_objects, new_img)
     return new_img
   
-  with Pool(num_workers) as pool:
-    new_imgs = pool.map(_generate, new_imgs)
+  new_imgs = []
+  num_generated = 0
 
-  save_generated_imgs(new_imgs, fpath)
+  while num_generated<num_imgs:
+    if num_generated+batch_size>num_imgs:
+      iter_batch_size = num_imgs-num_generated
+    else:
+      iter_batch_size = batch_size
+    generated_imgs = [GeneratedImage(img_size=img_size) for _ in range(iter_batch_size)]
+    with Pool(num_workers) as pool:
+      generated_imgs = pool.map(_generate, generated_imgs)
+    save_generated_imgs(generated_imgs, fpath)
+    for generated_img in generated_imgs: del generated_img.img
+    new_imgs+=generated_imgs
+    num_generated+=iter_batch_size
+
   save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
   return new_imgs
 
