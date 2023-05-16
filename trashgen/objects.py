@@ -45,12 +45,10 @@ def crop(annotations_dict, num_workers, padding):
     img_fpath, annotations = annotation_dict_item
     with Image.open(img_fpath) as orig_img:
       for annotation in annotations:
-        left, upper, width, height, category, segmentation = annotation
+        left, upper, width, height, category = annotation
         bbox = get_bbox(left, upper, width, height)
         padded_bbox = add_padding(padding, bbox, *orig_img.size)
         obj = ObjectImage(img=orig_img.crop(padded_bbox), category=category, padding_amounts=get_padding_amounts(padded_bbox, bbox))
-        if segmentation is not None:
-          obj.mask = segmentation2mask(segmentation) # NOTE: segmentation2mask has to be implemented
         objects.append(obj)
     return objects
 
