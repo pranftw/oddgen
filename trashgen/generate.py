@@ -68,10 +68,11 @@ def add_texture(generated_imgs, textures_fpath, max_textures_per_img, img_size, 
   
   def get_textures(textures_fpath, img_size):
     textures = get_imgs_from_dir(textures_fpath, ext='.jpg', num_workers=num_workers)
+    processed_textures = []
     for texture in textures:
       texture.putalpha(255)
-      texture.thumbnail(img_size)
-    return textures
+      processed_textures.append(texture.resize(img_size))
+    return processed_textures
   textures = get_textures(textures_fpath, img_size)
 
   def _add(generated_img):

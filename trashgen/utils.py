@@ -31,7 +31,7 @@ def save_generated_annotations(generated_imgs, fpath):
     if generated_img.annotations is None:
       generated_img.annotations = []
       for obj in generated_img.objects:
-        obj_details = {'id':obj_id, 'image_id':i, 'bbox':obj.bbox, 'category':obj.category}
+        obj_details = {'id':obj_id, 'image_id':i, 'bbox':obj.bbox, 'category_id':obj.category}
         generated_img.annotations.append(obj_details)
         obj_id+=1
     else:
@@ -80,17 +80,17 @@ def get_imgs_from_dir(dir_path, ext=None, num_workers=4):
 
 def get_generated_imgs_from_annotations(annotations_fpath, num_workers):
   from .generate import GeneratedImage
-  parent_dir = os.path.dirname(annotations_fpath)
   annotations = get_annotations(annotations_fpath)
-  all_img_fnames = list(annotations['images'].keys())
+  all_img_fnames = list(annotations.keys())
   def _get_generated_img(fname):
     generated_img = GeneratedImage()
-    generated_img.img = Image.open(os.path.join(parent_dir+fname))
+    generated_img.img = Image.open(os.path.join(fname))
     generated_img.fname = fname
-    generated_img.annotations = annotations['annotations']
+    annotation_tuples = annotations[fname]
+    generated_img.annotations = [{'bbox': annotation_tuple[:-1], 'category_id': annotation_tuple[-1]} for annotation_tuple in annotation_tuples]
     return generated_img
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
-    return pool.map(_get_generated_img)
+    return pool.map(_get_generated_img, all_img_fnames)
 
 
 def get_objects(dir_path):
