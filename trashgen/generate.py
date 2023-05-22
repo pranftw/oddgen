@@ -61,7 +61,8 @@ def generate(num_imgs, img_size, objects_fpath, max_objects_in_each_img, object_
     num_generated+=iter_batch_size
     print(f'\r{num_generated}/{num_imgs}', end='')
     save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
-
+  print()
+  
   return new_imgs
 
 

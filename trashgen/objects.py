@@ -29,7 +29,7 @@ def paste_objects(objects, new_img):
   for obj in objects:
     obj_width, obj_height = obj.img.size
     left, upper = random.randint(0, new_img_width-obj_width), random.randint(0, new_img_height-obj_height) # obj_width and obj_height are subtracted so as to ensure there there is no overflow of the images
-    bbox = [left, upper, *obj.img.size] # should be combined with category to get annotation
+    bbox = [left, upper, *reversed(obj.img.size)] # should be combined with category to get annotation
     obj.bbox = bbox
     new_img.img.paste(obj.img, (left, upper), obj.img)
 
