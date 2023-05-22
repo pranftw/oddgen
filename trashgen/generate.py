@@ -1,6 +1,6 @@
 from PIL import Image
 from pathos.multiprocessing import ProcessingPool as Pool
-from .objects import extract_objects, paste_objects, resize
+from .objects import extract_objects, paste_objects, resize, ObjectImage
 from .utils import save_generated_imgs, save_generated_annotations, get_imgs_from_dir
 from .bg_remover.remove import BGRemover
 from copy import deepcopy
@@ -20,12 +20,22 @@ class GeneratedImage:
     self.objects = objects
 
 
-def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, object_transformations, fpath, min_objects_in_each_img=0, num_workers=4, batch_size=100):
+def generate(num_imgs, img_size, objects_fpath, max_objects_in_each_img, object_size, object_transformations, fpath, min_objects_in_each_img=0, num_workers=4, batch_size=100):
   if object_size[0]<object_size[1]:
     raise ValueError(f'First dim({object_size[0]}) should be greater than or equal to second dim({object_size[1]})')
+  all_object_fpaths = [os.path.join(objects_fpath, object_fname) for object_fname in os.listdir(objects_fpath)]
 
+  def get_objects_from_fpaths(object_fpaths):
+    objs = []
+    for object_fpath in object_fpaths:
+      img = Image.open(object_fpath)
+      category,_ = os.path.basename(object_fpath).split('--')
+      objs.append(ObjectImage(img, int(category), [0]*4))
+    return objs
+  
   def _generate(new_img):
-    selected_objects = random.sample(objects, random.randint(min_objects_in_each_img, max_objects_in_each_img))
+    selected_object_fpaths = random.sample(all_object_fpaths, random.randint(min_objects_in_each_img, max_objects_in_each_img))
+    selected_objects = get_objects_from_fpaths(selected_object_fpaths)
     for object_transformation in object_transformations:
       transformation_fn, *args = object_transformation
       selected_objects = transformation_fn(selected_objects, *args)
@@ -43,14 +53,15 @@ def generate(num_imgs, img_size, objects, max_objects_in_each_img, object_size, 
     else:
       iter_batch_size = batch_size
     generated_imgs = [GeneratedImage(img_size=img_size) for _ in range(iter_batch_size)]
-    with Pool(num_workers) as pool:
+    with Pool(max_workers=num_workers) as pool:
       generated_imgs = pool.map(_generate, generated_imgs)
     save_generated_imgs(generated_imgs, fpath)
     for generated_img in generated_imgs: del generated_img.img
     new_imgs+=generated_imgs
     num_generated+=iter_batch_size
+    print(f'\r{num_generated}/{num_imgs}', end='')
+    save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
 
-  save_generated_annotations(new_imgs, os.path.join(fpath, 'annotations.json'))
   return new_imgs
 
 
