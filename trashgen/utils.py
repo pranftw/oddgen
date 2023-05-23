@@ -27,7 +27,7 @@ def save_generated_annotations(generated_imgs, fpath):
   annotations_dict = {'images':[], 'annotations':[]}
   obj_id = 1 # object id always starts from 1 in COCO
   for i,generated_img in enumerate(generated_imgs):
-    generated_img_width, generated_img_height = generated_img.img.size
+    generated_img_width, generated_img_height = generated_img.img_size
     img_details = {'id':i, 'file_name':generated_img.fname, 'width':generated_img_width, 'height':generated_img_height}
     if generated_img.annotations is None:
       generated_img.annotations = []

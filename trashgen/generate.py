@@ -12,6 +12,7 @@ import secrets
 class GeneratedImage:
   def __init__(self, img_size=None):
     self.img = Image.new(mode='RGBA', size=img_size) if img_size is not None else None
+    self.img_size = img_size
     self.fname = f'{secrets.token_hex(8)}.png'
     self.objects = None
     self.annotations = None
