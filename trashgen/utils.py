@@ -68,30 +68,35 @@ def get_annotations(annotations_fpath):
   return final_annotations
 
 
-def get_imgs_from_dir(dir_path, ext=None, num_workers=4):
-  fpaths = os.listdir(dir_path)
-  def _get_img(fpath):
-    if (ext is not None) and (fpath.endswith(ext)): # ext can also be a tuple of str
-      return Image.open(os.path.join(dir_path, fpath))
+def get_imgs_from_dir(dir_path, ext=None, num_workers=4, fnames=None):
+  if fnames is None:
+    fnames = os.listdir(dir_path)
+  def _get_img(fname):
+    if (ext is not None) and (fname.endswith(ext)): # ext can also be a tuple of str
+      return Image.open(os.path.join(dir_path, fname))#.convert('RGBA')
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
-    imgs = pool.map(_get_img, fpaths)
+    imgs = pool.map(_get_img, fnames)
   imgs = list(filter(lambda img:img is not None, imgs))
   return imgs
 
 
-def get_generated_imgs_from_annotations(annotations_fpath, num_workers):
+def get_generated_imgs_from_annotations(annotations_fpath, img_fnames=None, num_workers=4):
+  # img_fnames should be a list of full absolute paths
   from .generate import GeneratedImage
   annotations = get_annotations(annotations_fpath)
-  all_img_fnames = list(annotations.keys())
+  if img_fnames is None:
+    generated_imgs_fpath = os.path.dirname(annotations_fpath)
+    img_fnames = [os.path.join(generated_imgs_fpath, fname) for fname in list(annotations.keys())]
   def _get_generated_img(fname):
     generated_img = GeneratedImage()
-    generated_img.img = Image.open(os.path.join(fname))
-    generated_img.fname = fname
+    generated_img.img = Image.open(fname)
+    generated_img.fname = os.path.basename(fname)
+    generated_img.img_size = generated_img.img.size
     annotation_tuples = annotations[fname]
     generated_img.annotations = [{'bbox': annotation_tuple[:-1], 'category_id': annotation_tuple[-1]} for annotation_tuple in annotation_tuples]
     return generated_img
   with ThreadPoolExecutor(max_workers=num_workers) as pool:
-    return pool.map(_get_generated_img, all_img_fnames)
+    return pool.map(_get_generated_img, img_fnames)
 
 
 def get_objects(dir_path):

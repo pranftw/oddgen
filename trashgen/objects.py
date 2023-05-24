@@ -64,10 +64,12 @@ def crop(annotations_dict, num_workers, padding):
 def resize(objects, size):
   for obj in objects:
     obj_width, obj_height = obj.img.size
-    if obj_width>=obj_height: # horizontal
+    if obj_width>obj_height: # horizontal
       obj.img.thumbnail(size)
-    else: # vertical
+    elif obj_width<obj_height: # vertical
       obj.img.thumbnail((size[1], size[0]))
+    else:
+      obj.img.thumbnail((size[1], size[1])) # square
 
 
 def add_padding(padding, bbox, width, height):

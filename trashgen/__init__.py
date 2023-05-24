@@ -1,1 +1,1 @@
-from .generate import generate, generate_from_annotations, add_texture
+from .generate import generate, add_texture

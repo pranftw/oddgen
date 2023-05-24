@@ -1,12 +1,14 @@
 from PIL import Image
 from pathos.multiprocessing import ProcessingPool as Pool
 from .objects import extract_objects, paste_objects, resize, ObjectImage
-from .utils import save_generated_imgs, save_generated_annotations, get_imgs_from_dir
+from .utils import save_generated_imgs, save_generated_annotations, get_imgs_from_dir, get_generated_imgs_from_annotations
 from .bg_remover.remove import BGRemover
+from itertools import islice
 from copy import deepcopy
 import random
 import os
 import secrets
+import glob
 
 
 class GeneratedImage:
@@ -67,30 +69,22 @@ def generate(num_imgs, img_size, objects_fpath, max_objects_in_each_img, object_
   return new_imgs
 
 
-def generate_from_annotations(annotations_fpath, num_imgs, img_size, max_objects_in_each_img, object_size, object_transformations, fpath, bg_remover=BGRemover(), crop_padding=0, min_objects_in_each_img=0, num_workers=4):
-  objects_fpath = os.path.join(fpath, 'objects')
-  if not os.path.exists(objects_fpath):
-    os.mkdir(objects_fpath)
-  extracted_objects = extract_objects(annotations_fpath, bg_remover, num_workers, crop_padding, objects_fpath)
-  return generate(num_imgs, img_size, extracted_objects, max_objects_in_each_img, object_size, object_transformations, fpath, min_objects_in_each_img, num_workers)
-
-
-def add_texture(generated_imgs, textures_fpath, max_textures_per_img, img_size, save_to, num_workers=4):
+def add_texture(generated_imgs_fpath, textures_fpath, max_textures_per_img, img_size, save_to, batch_size=100, num_workers=4):
   if not os.path.exists(save_to):
     os.mkdir(save_to)
   
-  def get_textures(textures_fpath, img_size):
-    textures = get_imgs_from_dir(textures_fpath, ext='.jpg', num_workers=num_workers)
+  def get_textures(fnames):
+    textures = get_imgs_from_dir(textures_fpath, ext='.jpg', num_workers=num_workers, fnames=fnames)
     processed_textures = []
     for texture in textures:
       texture.putalpha(255)
       processed_textures.append(texture.resize(img_size))
     return processed_textures
-  textures = get_textures(textures_fpath, img_size)
 
+  all_texture_fpaths = os.listdir(textures_fpath)
   def _add(generated_img):
     textured_generated_imgs = []
-    selected_textures = random.sample(textures, random.randint(1, max_textures_per_img))
+    selected_textures = get_textures(random.sample(all_texture_fpaths, random.randint(1, max_textures_per_img)))
     for i,texture in enumerate(selected_textures):
       bg = texture.copy()
       bg.paste(generated_img.img, (0,0), generated_img.img)
@@ -98,13 +92,32 @@ def add_texture(generated_imgs, textures_fpath, max_textures_per_img, img_size, 
       textured_generated_img.img = bg
       textured_generated_img.annotations = deepcopy(generated_img.annotations)
       textured_generated_img.fname = f'{i}--{textured_generated_img.fname}'
+      textured_generated_img.img_size = deepcopy(generated_img.img_size)
       textured_generated_imgs.append(textured_generated_img)
     return textured_generated_imgs
+  
+  all_generated_imgs_fpaths = glob.glob(f'{generated_imgs_fpath}/*.png')
 
-  with Pool(max_workers=num_workers) as pool:
-    outputs = pool.map(_add, generated_imgs)
-    textured_generated_imgs = []
-    for output in outputs:
-      textured_generated_imgs+=output
-  save_generated_imgs(textured_generated_imgs, save_to)
-  save_generated_annotations(textured_generated_imgs, os.path.join(save_to, 'annotations.json'))
+  # Referenced from: /a/62913856/11516790
+  def batcher():
+    iterator = iter(all_generated_imgs_fpaths)
+    while batch:=list(islice(iterator, batch_size)):
+      yield batch
+  
+  all_textured_generated_imgs = []
+  num_textured = 0
+  num_all_generated_imgs_fpaths = len(all_generated_imgs_fpaths)
+  for batch in batcher():
+    batch_generated_imgs = get_generated_imgs_from_annotations(os.path.join(generated_imgs_fpath, 'annotations.json'), batch, num_workers)
+    with Pool(max_workers=num_workers) as pool:
+      outputs = pool.map(_add, batch_generated_imgs)
+      textured_generated_imgs = []
+      for output in outputs:
+        textured_generated_imgs+=output
+    save_generated_imgs(textured_generated_imgs, save_to)
+    for textured_generated_img in textured_generated_imgs: del textured_generated_img.img
+    all_textured_generated_imgs+=textured_generated_imgs
+    num_textured+=len(batch)
+    print(f'\r{num_textured}/{num_all_generated_imgs_fpaths}', end='')
+    save_generated_annotations(all_textured_generated_imgs, os.path.join(save_to, 'annotations.json'))
+  print()
