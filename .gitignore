@@ -2,9 +2,6 @@ venv
 __pycache__
 .DS_Store
 ignore
-example.py
-DIS
-model_venv
 *.pt*
 run_train_u2.sh
 upload_tensorboard.sh
