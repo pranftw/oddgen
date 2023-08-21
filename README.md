@@ -9,9 +9,13 @@
 ## Installation
 ```bash
 git clone https://github.com/pranftw/oddgen.git
+cd oddgen
 # create and activate virtual environment
 pip install -r requirements.txt
 ```
+
+## Example
+A simple ShapeNet example is demonstrated in `example.py`
 
 ## Download PyTorch files
 - `mkdir oddgen/bg_remover/models`

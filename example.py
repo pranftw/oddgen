@@ -10,6 +10,7 @@ oddgen_dir = os.getenv('oddgen_path') # empty directory path where the generated
 textures_fpath = os.getenv('oddgen_textures_path') # path to backgrounds for generated images NOTE: REPLACE THIS or SET ENV
 dataset_dir = os.getenv('dataset_path') # This can be replaced by absolute path to your downloaded dataset NOTE: REPLACE THIS or SET ENV
 
+
 # <-------------- DATASET GENERATION -------------->
 def generate_oddgen_dataset():
   os.mkdir(os.path.join(oddgen_dir, 'objects')) # create objects directory
