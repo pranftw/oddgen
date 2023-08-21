@@ -6,6 +6,7 @@ import os
 
 
 
+# <-------------- SET ENV VARS -------------->
 oddgen_dir = os.getenv('oddgen_path') # empty directory path where the generated object detection dataset will be saved in NOTE: REPLACE THIS or SET ENV
 textures_fpath = os.getenv('oddgen_textures_path') # path to backgrounds for generated images NOTE: REPLACE THIS or SET ENV
 dataset_dir = os.getenv('dataset_path') # This can be replaced by absolute path to your downloaded dataset NOTE: REPLACE THIS or SET ENV
