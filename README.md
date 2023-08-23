@@ -3,7 +3,7 @@
 
 <br>
   <div align="center">
-    <img width="251" alt="image" src="logo.png">
+    <img width="251" alt="logo" src="logo.png">
   </div>
 <br>
 
@@ -22,6 +22,12 @@ pip install -r requirements.txt
 ```
 
 ## Example
+<br>
+  <div align="center">
+    <img alt="methodology" src="methodology.svg">
+  </div>
+<br>
+
 - A simple ShapeNet example is demonstrated in `example.py`
 - Download sample dataset from https://drive.google.com/drive/folders/1mGMq5jGSY_BmnOdYjejDg_yi8zeSmOc2?usp=sharing and sample backgrounds from https://drive.google.com/drive/folders/135ozo_lTppYSaquCMWP566fEpl0MyWff?usp=sharing
 - The sample dataset contains 3 objects - phone, ship and plane from ShapeNet. Sample backgrounds contains several background images
@@ -29,7 +35,7 @@ pip install -r requirements.txt
 - Execute `python example.py` by uncommenting only the required functions one by one
 
 
-## Download PyTorch files
+## Download PyTorch files for Background Remover
 - `mkdir oddgen/bg_remover/models`
 - Download the required files from the following links into `oddgen/bg_remover/models`
   - model scripts - https://drive.google.com/drive/folders/1CckJQwVC2gRu9xw0HNNw5JYhC4RHfMHQ?usp=sharing
