@@ -39,6 +39,6 @@ pip install -r requirements.txt
 - `mkdir oddgen/bg_remover/models`
 - Download the required files from the following links into `oddgen/bg_remover/models`
   - model scripts - https://drive.google.com/drive/folders/1CckJQwVC2gRu9xw0HNNw5JYhC4RHfMHQ?usp=sharing
-  - ISNET weights - https://drive.google.com/file/d/1nV57qKuy--d5u1yvkng9aXW1KS4sOpOi/view?usp=sharing
-  - U2NET weights - https://drive.google.com/file/d/1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ/view?usp=sharing
-  - U2NETP weights - https://drive.google.com/file/d/1rbSTGKAE-MTxBYHd-51l2hMOQPT_7EPy/view?usp=sharing
+  - ISNET weights - https://drive.google.com/file/d/1nV57qKuy--d5u1yvkng9aXW1KS4sOpOi/view?usp=sharing (from [official link](https://github.com/xuebinqin/DIS))
+  - U2NET weights - https://drive.google.com/file/d/1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ/view?usp=sharing (from [official link](https://github.com/xuebinqin/U-2-Net))
+  - U2NETP weights - https://drive.google.com/file/d/1rbSTGKAE-MTxBYHd-51l2hMOQPT_7EPy/view?usp=sharing (from [official link](https://github.com/xuebinqin/U-2-Net))
